@@ -377,7 +377,7 @@ Transform:
   m_GameObject: {fileID: 516947135}
   serializedVersion: 2
   m_LocalRotation: {x: 0.14499275, y: 0.41865623, z: -0.06793389, w: 0.89391786}
-  m_LocalPosition: {x: -4.12, y: 2.43, z: -4.22}
+  m_LocalPosition: {x: -16.58, y: 7.83, z: -14.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -552,25 +552,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 572747155500136025, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.603
-      objectReference: {fileID: 0}
-    - target: {fileID: 2396210673271693403, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_SuspensionDistance
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 2396210673271693403, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_SuspensionSpring.spring
-      value: 30000
-      objectReference: {fileID: 0}
     - target: {fileID: 2735087903099507658, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
       propertyPath: m_Name
       value: RoadCar
-      objectReference: {fileID: 0}
-    - target: {fileID: 2863784121886089103, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.626
       objectReference: {fileID: 0}
     - target: {fileID: 3368458705250453872, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
       propertyPath: m_LocalPosition.x
@@ -611,34 +595,6 @@ PrefabInstance:
     - target: {fileID: 3368458705250453872, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3525414933094157928, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_SuspensionDistance
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 3525414933094157928, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_SuspensionSpring.spring
-      value: 30000
-      objectReference: {fileID: 0}
-    - target: {fileID: 5227814636544824765, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.603
-      objectReference: {fileID: 0}
-    - target: {fileID: 5816846074453674178, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_SuspensionDistance
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 7891047928639982527, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_SuspensionDistance
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 8878321440350580559, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.603
-      objectReference: {fileID: 0}
-    - target: {fileID: 8904615859115857615, guid: 33b29cada836f2d438fb48753a119e72, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.603
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

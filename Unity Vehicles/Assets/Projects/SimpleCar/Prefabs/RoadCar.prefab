@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 51236046325918835}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.795, y: -0.56, z: 1.262}
+  m_LocalPosition: {x: -0.795, y: -0.603, z: 1.262}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -46,7 +46,7 @@ WheelCollider:
     spring: 35000
     damper: 4500
     targetPosition: 0.3
-  m_SuspensionDistance: 0.3
+  m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
   m_Mass: 20
   m_WheelDampingRate: 0.25
@@ -97,7 +97,7 @@ Transform:
   m_GameObject: {fileID: 3108031429286424762}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.795, y: -0.56, z: -1.4310001}
+  m_LocalPosition: {x: 0.795, y: -0.603, z: -1.4310001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -114,10 +114,10 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.28
   m_SuspensionSpring:
-    spring: 35000
+    spring: 30000
     damper: 4500
     targetPosition: 0.3
-  m_SuspensionDistance: 0.3
+  m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
   m_Mass: 20
   m_WheelDampingRate: 0.25
@@ -168,7 +168,7 @@ Transform:
   m_GameObject: {fileID: 4988943251990638132}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.795, y: -0.56, z: 1.262}
+  m_LocalPosition: {x: 0.795, y: -0.603, z: 1.262}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -188,7 +188,7 @@ WheelCollider:
     spring: 35000
     damper: 4500
     targetPosition: 0.3
-  m_SuspensionDistance: 0.3
+  m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
   m_Mass: 20
   m_WheelDampingRate: 0.25
@@ -239,7 +239,7 @@ Transform:
   m_GameObject: {fileID: 7745111270711100772}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.795, y: -0.56, z: -1.431}
+  m_LocalPosition: {x: -0.795, y: -0.603, z: -1.431}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -256,10 +256,10 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.28
   m_SuspensionSpring:
-    spring: 35000
+    spring: 30000
     damper: 4500
     targetPosition: 0.3
-  m_SuspensionDistance: 0.3
+  m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
   m_Mass: 20
   m_WheelDampingRate: 0.25
@@ -390,7 +390,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.547
+      value: -0.626
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.z
@@ -478,7 +478,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 15061031cf2697749b1011911d411297, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.34
+      value: 1.24
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 15061031cf2697749b1011911d411297, type: 3}
       propertyPath: m_LocalPosition.z
@@ -557,6 +557,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 15061031cf2697749b1011911d411297, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7463253362695806058}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 15061031cf2697749b1011911d411297, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3964953370274670761}
   m_SourcePrefab: {fileID: 100100000, guid: 15061031cf2697749b1011911d411297, type: 3}
 --- !u!1 &2735087903099507658 stripped
 GameObject:
@@ -625,6 +628,69 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleCar
   CenterOfMass: {x: 0, y: -0.19, z: 0.45}
+  DriveTrain: 0
+  TurnRadius: 10
+  SteeringWheelRange: 900
+  HorsePower: 78
+  RpmRange: 9000
+  PowerCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1.7320137
+      outSlope: 1.7320137
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.052956954
+    - serializedVersion: 3
+      time: 0.6374165
+      value: 1
+      inSlope: 0.023718761
+      outSlope: 0.023718761
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.15529074
+    - serializedVersion: 3
+      time: 1.0008545
+      value: -0.0024795532
+      inSlope: -5.1829553
+      outSlope: -5.1829553
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.042427894
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  GearRatios:
+  - 4.27
+  - 2.35
+  - 1.48
+  - 1.05
+  - 0.8
+  ReverseGearRatio: 3.31
+  DifferentialGearRatio: 4.87
+  FrontRightWheel: {fileID: 5816846074453674178}
+  FrontLeftWheel: {fileID: 7891047928639982527}
+  RearRightWheel: {fileID: 2396210673271693403}
+  RearLeftWheel: {fileID: 3525414933094157928}
+  SteeringInput: 0
+--- !u!114 &3964953370274670761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2735087903099507658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1096f4574ddaeaf4d903fb5852307c6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.SimpleCarController
 --- !u!4 &3368458705250453872 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 15061031cf2697749b1011911d411297, type: 3}

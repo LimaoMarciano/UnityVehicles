@@ -14,8 +14,10 @@ namespace UnityVehicles.SimpleCar
     {
     
         Rigidbody rb;
-        public Vector3 CenterOfMass;
+
+        public Vector3 CenterOfMassOffset;
         public DriveTrainType DriveTrain;
+        
         [Header("Steering")]
         public float TurnRadius = 10f;
         public float SteeringWheelRange = 900f;
@@ -27,11 +29,15 @@ namespace UnityVehicles.SimpleCar
         public AnimationCurve PowerCurve;
 
         [Header("GearBox")]
-        public float[] GearRatios = new float[5] { 4.27f, 2.35f, 1.48f, 1.05f, 0.8f};
+        public float[] GearRatios = new float[5] {4.27f, 2.35f, 1.48f, 1.05f, 0.8f};
         public float ReverseGearRatio = 3.31f;
         public float DifferentialGearRatio = 4.87f;
 
-        
+        [Header("Brakes")]
+        public float BrakePower = 1000f;
+        [Range(0f,1f)]
+        public float BrakeBias = 0.5f;
+    
         [Header("Wheels")]
         public WheelCollider FrontRightWheel;
         public WheelCollider FrontLeftWheel;
@@ -39,25 +45,22 @@ namespace UnityVehicles.SimpleCar
         public WheelCollider RearLeftWheel;
 
         //Input
-        [HideInInspector]
-        [Range(-1f,1f)]
-        public float SteeringInput = 0f;
-        [HideInInspector]
-        [Range(0f, 1f)]
-        public float AcceleratorInput = 0f;
+        [HideInInspector] public float SteeringInput = 0f;
+        [HideInInspector] public float AcceleratorInput = 0f;
+        [HideInInspector] public float BrakesInput = 0f;
         
         float wheelBase;
         float rearAxleTrack;
         WheelCollider[] drivenWheels;
-        int currentGear = 1;
+        int currentGear = 0;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
             rb = GetComponent<Rigidbody>();
-            rb.centerOfMass = CenterOfMass;
+            rb.centerOfMass = CenterOfMassOffset;
 
-            (wheelBase, rearAxleTrack) = SetWheelBaseAndRearAxleTrack();
+            (wheelBase, rearAxleTrack) = GetWheelBaseAndRearAxleTrack();
 
             switch(DriveTrain)
             {
@@ -85,6 +88,7 @@ namespace UnityVehicles.SimpleCar
         void FixedUpdate()
         {
             ApplySteering(SteeringInput);
+            ApplyBrakes(BrakesInput);
 
             float wheelAverageRpm = Mathf.Min(IdleRpm,GetDrivenWheelsAverageRpm());
             float rpmCurrentRange = wheelAverageRpm / RpmRange;
@@ -93,11 +97,17 @@ namespace UnityVehicles.SimpleCar
             ApplyTorqueToDrivenWheels(torque);
         }
 
-        public void ApplySteering(float input)
+        void ApplySteering(float input)
         {
             Vector2 steeringAngles = CalculateAckermannSteering(input, wheelBase, TurnRadius, rearAxleTrack);
             FrontLeftWheel.steerAngle = steeringAngles.x;
             FrontRightWheel.steerAngle = steeringAngles.y;
+        }
+
+        void ApplyBrakes(float input)
+        {
+            FrontLeftWheel.brakeTorque = FrontRightWheel.brakeTorque = Mathf.Max(0f, BrakePower * BrakeBias * input);
+            RearLeftWheel.brakeTorque = RearRightWheel.brakeTorque = Mathf.Max(0f, BrakePower * (1f- BrakeBias) * input);
         }
 
         void ApplyTorqueToDrivenWheels(float torque)
@@ -106,8 +116,6 @@ namespace UnityVehicles.SimpleCar
             {
                 wheelCollider.motorTorque = torque * AcceleratorInput;             
             }
-
-            Debug.Log(torque * AcceleratorInput);
         }
 
         /// <summary>
@@ -115,7 +123,7 @@ namespace UnityVehicles.SimpleCar
         /// This is necessary for Ackermann steering calculation
         /// </summary>
         /// <returns>WheelBase, RearAxleTrack</returns>
-        (float,float) SetWheelBaseAndRearAxleTrack()
+        (float,float) GetWheelBaseAndRearAxleTrack()
         {
             Vector3 frontAxleMidPoint = (FrontLeftWheel.transform.position + FrontRightWheel.transform.position) / 2f;
             Vector3 rearAxleMidPoint = (RearLeftWheel.transform.position + RearRightWheel.transform.position) / 2f;
@@ -161,12 +169,26 @@ namespace UnityVehicles.SimpleCar
             return wheelRpmAvg;
         }
 
+        public void IncreaseGear()
+        {
+            if (currentGear < GearRatios.Length - 1)
+            {
+                currentGear += 1;
+            }
+        }
+
+        public void DecreaseGear()
+        {
+            if (currentGear > 0)
+            {
+                currentGear -= 1;
+            }
+        }
+
         private void OnDrawGizmosSelected()
         {
-            Vector3 gizmoPos = transform.TransformPoint(CenterOfMass);
-            Gizmos.DrawWireSphere(gizmoPos, 0.1f);
-            //Gizmos.DrawSphere(gizmoPos, 0.1f);
-        
+            Vector3 gizmoPos = transform.TransformPoint(CenterOfMassOffset);
+            Gizmos.DrawWireSphere(gizmoPos, 0.1f);    
         }
     }
 }

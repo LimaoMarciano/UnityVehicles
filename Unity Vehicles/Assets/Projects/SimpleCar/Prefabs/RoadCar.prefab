@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 51236046325918835}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.795, y: -0.603, z: 1.262}
+  m_LocalPosition: {x: -0.75200003, y: -0.603, z: 1.262}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -97,7 +97,7 @@ Transform:
   m_GameObject: {fileID: 3108031429286424762}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.795, y: -0.603, z: -1.4310001}
+  m_LocalPosition: {x: 0.752, y: -0.603, z: -1.4310001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -168,7 +168,7 @@ Transform:
   m_GameObject: {fileID: 4988943251990638132}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.795, y: -0.603, z: 1.262}
+  m_LocalPosition: {x: 0.752, y: -0.603, z: 1.262}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -239,7 +239,7 @@ Transform:
   m_GameObject: {fileID: 7745111270711100772}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.795, y: -0.603, z: -1.431}
+  m_LocalPosition: {x: -0.75200003, y: -0.603, z: -1.431}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -294,11 +294,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.795
+      value: 0.752
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.547
+      value: -0.603
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.z
@@ -386,11 +386,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.795
+      value: -0.752
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.626
+      value: -0.603
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.z
@@ -402,7 +402,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalRotation.y
@@ -410,7 +410,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -627,12 +627,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efb592dfa4bcb6b4b87fb957cb874b3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleCar
-  CenterOfMass: {x: 0, y: -0.19, z: 0.45}
+  CenterOfMassOffset: {x: 0, y: 0, z: 0}
   DriveTrain: 0
   TurnRadius: 10
   SteeringWheelRange: 900
   HorsePower: 78
   RpmRange: 9000
+  IdleRpm: 800
   PowerCurve:
     serializedVersion: 2
     m_Curve:
@@ -674,11 +675,15 @@ MonoBehaviour:
   - 0.8
   ReverseGearRatio: 3.31
   DifferentialGearRatio: 4.87
+  BrakePower: 1200
+  BrakeBias: 0.58
   FrontRightWheel: {fileID: 5816846074453674178}
   FrontLeftWheel: {fileID: 7891047928639982527}
   RearRightWheel: {fileID: 2396210673271693403}
   RearLeftWheel: {fileID: 3525414933094157928}
   SteeringInput: 0
+  AcceleratorInput: 0
+  BrakesInput: 0
 --- !u!114 &3964953370274670761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -706,15 +711,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.834
+      value: 0.752
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.658
+      value: -0.603
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.4509999
+      value: -1.4310001
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalRotation.w
@@ -798,15 +803,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.771
+      value: -0.75200003
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.658
+      value: -0.603
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.413
+      value: -1.431
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 27f1ec853bdbaa340b2007e756db3f16, type: 3}
       propertyPath: m_LocalRotation.w

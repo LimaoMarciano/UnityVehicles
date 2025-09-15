@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace UnityVehicles.SimpleCar
 {
@@ -8,6 +9,9 @@ namespace UnityVehicles.SimpleCar
 
         CarInputActions carInputActions;
         SimpleCar car;
+
+        InputAction GearUpShift;
+        InputAction GearDownShift;
 
         private void Awake()
         {
@@ -28,6 +32,8 @@ namespace UnityVehicles.SimpleCar
         void Start()
         {
             car = GetComponent<SimpleCar>();
+            GearUpShift = carInputActions.FindAction("UpShift");
+            GearDownShift = carInputActions.FindAction("DownShift");
         }
 
         // Update is called once per frame
@@ -37,6 +43,19 @@ namespace UnityVehicles.SimpleCar
             car.SteeringInput = steering.x;
 
             car.AcceleratorInput = carInputActions.Car.Throttle.ReadValue<float>();
+            car.BrakesInput = carInputActions.Car.Brakes.ReadValue<float>();
+            
+            if (GearUpShift.WasPressedThisFrame())
+            {
+                car.IncreaseGear();
+            }
+
+            if (GearDownShift.WasPressedThisFrame())
+            {
+                car.DecreaseGear();
+            }
+
+            
         }
     }
 }

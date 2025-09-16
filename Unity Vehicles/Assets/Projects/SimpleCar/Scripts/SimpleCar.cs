@@ -12,12 +12,12 @@ namespace UnityVehicles.SimpleCar
 
     public class SimpleCar : MonoBehaviour
     {
-    
+
         Rigidbody rb;
 
         public Vector3 CenterOfMassOffset;
         public DriveTrainType DriveTrain;
-        
+
         [Header("Steering")]
         public float TurnRadius = 10f;
         public float SteeringWheelRange = 900f;
@@ -25,19 +25,19 @@ namespace UnityVehicles.SimpleCar
         [Header("Engine")]
         public float HorsePower = 78f;
         public float RpmRange = 9000f;
-        public float IdleRpm = 800f;
+        public float IdleRpm = 500f;
         public AnimationCurve PowerCurve;
 
         [Header("GearBox")]
-        public float[] GearRatios = new float[5] {4.27f, 2.35f, 1.48f, 1.05f, 0.8f};
+        public float[] GearRatios = new float[5] { 4.27f, 2.35f, 1.48f, 1.05f, 0.8f };
         public float ReverseGearRatio = 3.31f;
         public float DifferentialGearRatio = 4.87f;
 
         [Header("Brakes")]
         public float BrakePower = 1000f;
-        [Range(0f,1f)]
+        [Range(0f, 1f)]
         public float BrakeBias = 0.5f;
-    
+
         [Header("Wheels")]
         public WheelCollider FrontRightWheel;
         public WheelCollider FrontLeftWheel;
@@ -48,11 +48,13 @@ namespace UnityVehicles.SimpleCar
         [HideInInspector] public float SteeringInput = 0f;
         [HideInInspector] public float AcceleratorInput = 0f;
         [HideInInspector] public float BrakesInput = 0f;
+
+        public float EngineRpm { get; private set; }
+        public int CurrentGear { get; private set; } = 0; 
         
         float wheelBase;
         float rearAxleTrack;
         WheelCollider[] drivenWheels;
-        int currentGear = 0;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -90,11 +92,11 @@ namespace UnityVehicles.SimpleCar
             ApplySteering(SteeringInput);
             ApplyBrakes(BrakesInput);
 
-            float wheelAverageRpm = Mathf.Min(IdleRpm,GetDrivenWheelsAverageRpm());
-            float rpmCurrentRange = wheelAverageRpm / RpmRange;
-            float currentPower = PowerCurve.Evaluate(Mathf.Clamp01(rpmCurrentRange)) * HorsePower;
-            float torque = (currentPower / wheelAverageRpm) * GearRatios[currentGear] * DifferentialGearRatio * 5252f;
-            ApplyTorqueToDrivenWheels(torque);
+            EngineRpm = GetDrivenWheelsAverageRpm() * GearRatios[CurrentGear] * DifferentialGearRatio;
+            EngineRpm = Mathf.Max(IdleRpm, EngineRpm);
+            float currentPower = PowerCurve.Evaluate(Mathf.Clamp01(EngineRpm / RpmRange)) * HorsePower;
+            float torque = (currentPower * 5252f) / EngineRpm;
+            ApplyTorqueToDrivenWheels(torque * GearRatios[CurrentGear] * DifferentialGearRatio);
         }
 
         void ApplySteering(float input)
@@ -114,7 +116,7 @@ namespace UnityVehicles.SimpleCar
         {
             foreach (WheelCollider wheelCollider in drivenWheels)
             {
-                wheelCollider.motorTorque = torque * AcceleratorInput;             
+                wheelCollider.motorTorque = torque * AcceleratorInput / 2f;             
             }
         }
 
@@ -161,27 +163,26 @@ namespace UnityVehicles.SimpleCar
             float wheelRpmAvg = 0f;
             foreach (WheelCollider wheelCollider in drivenWheels)
             {
-                wheelRpmAvg += wheelCollider.rpm;
+                wheelRpmAvg += Mathf.Abs(wheelCollider.rpm);
             }
 
-            wheelRpmAvg = Mathf.Max(IdleRpm,wheelRpmAvg) / drivenWheels.Length;
-
+            wheelRpmAvg = wheelRpmAvg / drivenWheels.Length;
             return wheelRpmAvg;
         }
 
         public void IncreaseGear()
         {
-            if (currentGear < GearRatios.Length - 1)
+            if (CurrentGear < GearRatios.Length - 1)
             {
-                currentGear += 1;
+                CurrentGear += 1;
             }
         }
 
         public void DecreaseGear()
         {
-            if (currentGear > 0)
+            if (CurrentGear > 0)
             {
-                currentGear -= 1;
+                CurrentGear -= 1;
             }
         }
 

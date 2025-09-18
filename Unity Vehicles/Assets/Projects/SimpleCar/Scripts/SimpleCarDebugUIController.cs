@@ -6,10 +6,8 @@ public class SimpleCarDebugUIController : MonoBehaviour
 {
     public SimpleCar Car;
     public UIDebugBar RPMBar;
-    public UIDebugBar FRWheelBar;
-    public UIDebugBar FLWheelBar;
-    public WheelCollider FRWheel;
-    public WheelCollider FLWheel;
+    public UIDebugBar GearBar;
+    public UIDebugBar SpeedBar;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -21,7 +19,7 @@ public class SimpleCarDebugUIController : MonoBehaviour
     void Update()
     {
         RPMBar.SetCurrentValue(Car.EngineRpm);
-        FRWheelBar.SetCurrentValue(FRWheel.rpm);
-        FLWheelBar.SetCurrentValue(FLWheel.rpm);
+        GearBar.SetCurrentValue(Car.CurrentGear + 1);
+        SpeedBar.SetCurrentValue(Car.CurrentSpeed * 3.6f);
     }
 }

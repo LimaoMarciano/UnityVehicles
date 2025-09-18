@@ -32,6 +32,7 @@ namespace UnityVehicles.SimpleCar
         public float[] GearRatios = new float[5] { 4.27f, 2.35f, 1.48f, 1.05f, 0.8f };
         public float ReverseGearRatio = 3.31f;
         public float DifferentialGearRatio = 4.87f;
+        [Range(0f, 1f)] public float DifferentialLock = 0f;
 
         [Header("Brakes")]
         public float BrakePower = 1000f;
@@ -50,10 +51,12 @@ namespace UnityVehicles.SimpleCar
         [HideInInspector] public float BrakesInput = 0f;
 
         public float EngineRpm { get; private set; }
-        public int CurrentGear { get; private set; } = 0; 
+        public int CurrentGear { get; private set; } = 0;
+        public float CurrentSpeed { get; private set; } = 0;
         
         float wheelBase;
         float rearAxleTrack;
+        float drivetrainEfficiency = 1f;
         WheelCollider[] drivenWheels;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -70,11 +73,13 @@ namespace UnityVehicles.SimpleCar
                     drivenWheels = new WheelCollider[2];
                     drivenWheels[0] = FrontLeftWheel;
                     drivenWheels[1] = FrontRightWheel;
+                    drivetrainEfficiency = 0.92f;
                     break;
                 case DriveTrainType.RWD:
                     drivenWheels = new WheelCollider[2];
                     drivenWheels[0] = RearLeftWheel;
                     drivenWheels[1] = RearRightWheel;
+                    drivetrainEfficiency = 0.88f;
                     break;
                 case DriveTrainType.AWD:
                     drivenWheels = new WheelCollider[4];
@@ -82,7 +87,8 @@ namespace UnityVehicles.SimpleCar
                     drivenWheels[1] = FrontRightWheel;
                     drivenWheels[2] = RearLeftWheel;
                     drivenWheels[3] = RearRightWheel;
-                break;
+                    drivetrainEfficiency = 0.85f;
+                    break;
             }
         }
 
@@ -97,6 +103,8 @@ namespace UnityVehicles.SimpleCar
             float currentPower = PowerCurve.Evaluate(Mathf.Clamp01(EngineRpm / RpmRange)) * HorsePower;
             float torque = (currentPower * 5252f) / EngineRpm;
             ApplyTorqueToDrivenWheels(torque * GearRatios[CurrentGear] * DifferentialGearRatio);
+
+            CalculateCurrentSpeed();
         }
 
         void ApplySteering(float input)
@@ -114,9 +122,43 @@ namespace UnityVehicles.SimpleCar
 
         void ApplyTorqueToDrivenWheels(float torque)
         {
+            /*
+            float totalSlip = 0f;
+            WheelHit wheelHit;
+            for(int i = 0; i < drivenWheels.Length; i++)
+            {
+                drivenWheels[i].GetGroundHit(out wheelHit);
+                totalSlip += Mathf.Abs(wheelHit.forwardSlip);
+            }
+            */
+
+            //float torqueDelivery;
             foreach (WheelCollider wheelCollider in drivenWheels)
             {
-                wheelCollider.motorTorque = torque * AcceleratorInput / 2f;             
+                /*if (totalSlip != 0f)
+                {
+                    wheelCollider.GetGroundHit(out wheelHit);
+                    torqueDelivery = Mathf.Abs(wheelHit.forwardSlip) / totalSlip;
+                }
+                else
+                {
+                    torqueDelivery = 1f;
+                }
+                wheelCollider.motorTorque = torque * AcceleratorInput * drivetrainEfficiency * torqueDelivery; */
+
+                wheelCollider.motorTorque = torque * AcceleratorInput * drivetrainEfficiency;
+            }
+        }
+
+        void CalculateCurrentSpeed()
+        {
+            if (GearRatios[CurrentGear] == 0f || DifferentialGearRatio == 0f)
+            {
+                CurrentSpeed = 0f;
+            } 
+            else
+            {
+                CurrentSpeed = EngineRpm / GearRatios[CurrentGear] / DifferentialGearRatio / 60f * FrontLeftWheel.radius * 2f * Mathf.PI;
             }
         }
 

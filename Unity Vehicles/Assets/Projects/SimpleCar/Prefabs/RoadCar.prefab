@@ -115,7 +115,7 @@ WheelCollider:
   m_Radius: 0.28
   m_SuspensionSpring:
     spring: 30000
-    damper: 4500
+    damper: 4200
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -257,7 +257,7 @@ WheelCollider:
   m_Radius: 0.28
   m_SuspensionSpring:
     spring: 30000
-    damper: 4500
+    damper: 4200
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -590,7 +590,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!64 &1145953124417962250
@@ -633,7 +633,7 @@ MonoBehaviour:
   SteeringWheelRange: 900
   HorsePower: 78
   RpmRange: 9000
-  IdleRpm: 800
+  IdleRpm: 500
   PowerCurve:
     serializedVersion: 2
     m_Curve:
@@ -675,8 +675,8 @@ MonoBehaviour:
   - 0.8
   ReverseGearRatio: 3.31
   DifferentialGearRatio: 4.87
-  BrakePower: 1200
-  BrakeBias: 0.58
+  BrakePower: 1700
+  BrakeBias: 0.65
   FrontRightWheel: {fileID: 5816846074453674178}
   FrontLeftWheel: {fileID: 7891047928639982527}
   RearRightWheel: {fileID: 2396210673271693403}

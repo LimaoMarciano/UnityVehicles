@@ -26,6 +26,7 @@ namespace UnityVehicles.SimpleCar
         public float HorsePower = 78f;
         public float RpmRange = 9000f;
         public float IdleRpm = 500f;
+        public float EngineBrake = 100f;
         public AnimationCurve PowerCurve;
 
         [Header("GearBox")]
@@ -40,24 +41,26 @@ namespace UnityVehicles.SimpleCar
         public float BrakeBias = 0.5f;
 
         [Header("Wheels")]
-        public WheelCollider FrontRightWheel;
-        public WheelCollider FrontLeftWheel;
-        public WheelCollider RearRightWheel;
-        public WheelCollider RearLeftWheel;
+        public SimpleCarWheel FrontRightWheel;
+        public SimpleCarWheel FrontLeftWheel;
+        public SimpleCarWheel RearRightWheel;
+        public SimpleCarWheel RearLeftWheel;
 
         //Input
         [HideInInspector] public float SteeringInput = 0f;
         [HideInInspector] public float AcceleratorInput = 0f;
         [HideInInspector] public float BrakesInput = 0f;
 
-        public float EngineRpm { get; private set; }
         public int CurrentGear { get; private set; } = 0;
-        public float CurrentSpeed { get; private set; } = 0;
+        public float EngineRpm { get; private set; } = 0f;
+        public float CurrentSpeed { get; private set; } = 0f;
+        public float EngineTorque { get; private set; } = 0f;
+        public float DriveTrainTorque { get; private set; } = 0f;
         
         float wheelBase;
         float rearAxleTrack;
         float drivetrainEfficiency = 1f;
-        WheelCollider[] drivenWheels;
+        SimpleCarWheel[] drivenWheels;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -70,19 +73,19 @@ namespace UnityVehicles.SimpleCar
             switch(DriveTrain)
             {
                 case DriveTrainType.FWD:
-                    drivenWheels = new WheelCollider[2];
+                    drivenWheels = new SimpleCarWheel[2];
                     drivenWheels[0] = FrontLeftWheel;
                     drivenWheels[1] = FrontRightWheel;
                     drivetrainEfficiency = 0.92f;
                     break;
                 case DriveTrainType.RWD:
-                    drivenWheels = new WheelCollider[2];
+                    drivenWheels = new SimpleCarWheel[2];
                     drivenWheels[0] = RearLeftWheel;
                     drivenWheels[1] = RearRightWheel;
                     drivetrainEfficiency = 0.88f;
                     break;
                 case DriveTrainType.AWD:
-                    drivenWheels = new WheelCollider[4];
+                    drivenWheels = new SimpleCarWheel[4];
                     drivenWheels[0] = FrontLeftWheel;
                     drivenWheels[1] = FrontRightWheel;
                     drivenWheels[2] = RearLeftWheel;
@@ -94,59 +97,56 @@ namespace UnityVehicles.SimpleCar
 
         // Update is called once per frame
         void FixedUpdate()
-        {
+        {          
             ApplySteering(SteeringInput);
             ApplyBrakes(BrakesInput);
+            ApplyTorqueToDrivenWheels(AcceleratorInput);
 
+            /*
             EngineRpm = GetDrivenWheelsAverageRpm() * GearRatios[CurrentGear] * DifferentialGearRatio;
             EngineRpm = Mathf.Max(IdleRpm, EngineRpm);
-            float currentPower = PowerCurve.Evaluate(Mathf.Clamp01(EngineRpm / RpmRange)) * HorsePower;
-            float torque = (currentPower * 5252f) / EngineRpm;
-            ApplyTorqueToDrivenWheels(torque * GearRatios[CurrentGear] * DifferentialGearRatio);
-
+            currentPower = PowerCurve.Evaluate(Mathf.Clamp01(EngineRpm / RpmRange)) * HorsePower;
+            EngineTorque = (currentPower * 5252f) / EngineRpm;
+            ApplyTorqueToDrivenWheels(EngineTorque * GearRatios[CurrentGear] * DifferentialGearRatio);
+            */
             CalculateCurrentSpeed();
         }
 
         void ApplySteering(float input)
         {
             Vector2 steeringAngles = CalculateAckermannSteering(input, wheelBase, TurnRadius, rearAxleTrack);
-            FrontLeftWheel.steerAngle = steeringAngles.x;
-            FrontRightWheel.steerAngle = steeringAngles.y;
+            FrontLeftWheel.WheelCollider.steerAngle = steeringAngles.x;
+            FrontRightWheel.WheelCollider.steerAngle = steeringAngles.y;
         }
 
         void ApplyBrakes(float input)
         {
-            FrontLeftWheel.brakeTorque = FrontRightWheel.brakeTorque = Mathf.Max(0f, BrakePower * BrakeBias * input);
-            RearLeftWheel.brakeTorque = RearRightWheel.brakeTorque = Mathf.Max(0f, BrakePower * (1f- BrakeBias) * input);
+            FrontLeftWheel.WheelCollider.brakeTorque = FrontRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * BrakeBias * input);
+            RearLeftWheel.WheelCollider.brakeTorque = RearRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * (1f- BrakeBias) * input);
         }
 
-        void ApplyTorqueToDrivenWheels(float torque)
+        void ApplyTorqueToDrivenWheels(float acceleratorInput)
         {
-            /*
-            float totalSlip = 0f;
-            WheelHit wheelHit;
-            for(int i = 0; i < drivenWheels.Length; i++)
+            EngineRpm = GetDrivenWheelsAverageRpm() * GearRatios[CurrentGear] * DifferentialGearRatio;
+            EngineRpm = Mathf.Max(IdleRpm, EngineRpm);
+
+            float currentRpmRange = Mathf.Clamp01(EngineRpm / RpmRange);
+
+            if (AcceleratorInput > 0)
             {
-                drivenWheels[i].GetGroundHit(out wheelHit);
-                totalSlip += Mathf.Abs(wheelHit.forwardSlip);
+                float currentPower = PowerCurve.Evaluate(currentRpmRange) * HorsePower;
+                EngineTorque = currentPower * 5252f / EngineRpm * acceleratorInput;
+            } 
+            else
+            {
+                EngineTorque = -EngineBrake * currentRpmRange;
             }
-            */
 
-            //float torqueDelivery;
-            foreach (WheelCollider wheelCollider in drivenWheels)
+            DriveTrainTorque = EngineTorque * GearRatios[CurrentGear] * DifferentialGearRatio * drivetrainEfficiency;
+
+            foreach (SimpleCarWheel wheelCollider in drivenWheels)
             {
-                /*if (totalSlip != 0f)
-                {
-                    wheelCollider.GetGroundHit(out wheelHit);
-                    torqueDelivery = Mathf.Abs(wheelHit.forwardSlip) / totalSlip;
-                }
-                else
-                {
-                    torqueDelivery = 1f;
-                }
-                wheelCollider.motorTorque = torque * AcceleratorInput * drivetrainEfficiency * torqueDelivery; */
-
-                wheelCollider.motorTorque = torque * AcceleratorInput * drivetrainEfficiency;
+                wheelCollider.WheelCollider.motorTorque = DriveTrainTorque * 0.5f;
             }
         }
 
@@ -158,7 +158,35 @@ namespace UnityVehicles.SimpleCar
             } 
             else
             {
-                CurrentSpeed = EngineRpm / GearRatios[CurrentGear] / DifferentialGearRatio / 60f * FrontLeftWheel.radius * 2f * Mathf.PI;
+                CurrentSpeed = EngineRpm / GearRatios[CurrentGear] / DifferentialGearRatio / 60f * FrontLeftWheel.WheelCollider.radius * 2f * Mathf.PI;
+            }
+        }
+
+        float GetDrivenWheelsAverageRpm ()
+        {
+            float wheelRpmAvg = 0f;
+            foreach (SimpleCarWheel simpleCarWheel in drivenWheels)
+            {
+                wheelRpmAvg += Mathf.Abs(simpleCarWheel.WheelCollider.rpm);
+            }
+
+            wheelRpmAvg = wheelRpmAvg / drivenWheels.Length;
+            return wheelRpmAvg;
+        }
+
+        public void IncreaseGear()
+        {
+            if (CurrentGear < GearRatios.Length - 1)
+            {
+                CurrentGear += 1;
+            }
+        }
+
+        public void DecreaseGear()
+        {
+            if (CurrentGear > 0)
+            {
+                CurrentGear -= 1;
             }
         }
 
@@ -167,7 +195,7 @@ namespace UnityVehicles.SimpleCar
         /// This is necessary for Ackermann steering calculation
         /// </summary>
         /// <returns>WheelBase, RearAxleTrack</returns>
-        (float,float) GetWheelBaseAndRearAxleTrack()
+        (float, float) GetWheelBaseAndRearAxleTrack()
         {
             Vector3 frontAxleMidPoint = (FrontLeftWheel.transform.position + FrontRightWheel.transform.position) / 2f;
             Vector3 rearAxleMidPoint = (RearLeftWheel.transform.position + RearRightWheel.transform.position) / 2f;
@@ -198,34 +226,6 @@ namespace UnityVehicles.SimpleCar
             }
 
             return steeringAngles;
-        }
-
-        float GetDrivenWheelsAverageRpm ()
-        {
-            float wheelRpmAvg = 0f;
-            foreach (WheelCollider wheelCollider in drivenWheels)
-            {
-                wheelRpmAvg += Mathf.Abs(wheelCollider.rpm);
-            }
-
-            wheelRpmAvg = wheelRpmAvg / drivenWheels.Length;
-            return wheelRpmAvg;
-        }
-
-        public void IncreaseGear()
-        {
-            if (CurrentGear < GearRatios.Length - 1)
-            {
-                CurrentGear += 1;
-            }
-        }
-
-        public void DecreaseGear()
-        {
-            if (CurrentGear > 0)
-            {
-                CurrentGear -= 1;
-            }
         }
 
         private void OnDrawGizmosSelected()

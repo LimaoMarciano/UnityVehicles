@@ -44,8 +44,8 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.28
   m_SuspensionSpring:
-    spring: 35000
-    damper: 4500
+    spring: 32000
+    damper: 4200
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -129,8 +129,8 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.28
   m_SuspensionSpring:
-    spring: 30000
-    damper: 4200
+    spring: 28000
+    damper: 4000
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -214,8 +214,8 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.28
   m_SuspensionSpring:
-    spring: 35000
-    damper: 4500
+    spring: 32000
+    damper: 4200
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -299,8 +299,8 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.28
   m_SuspensionSpring:
-    spring: 30000
-    damper: 4200
+    spring: 28000
+    damper: 4000
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -646,6 +646,8 @@ MonoBehaviour:
   HorsePower: 78
   RpmRange: 9000
   IdleRpm: 500
+  EngineBrake: 100
+  UnclutchedResponse: 1
   PowerCurve:
     serializedVersion: 2
     m_Curve:

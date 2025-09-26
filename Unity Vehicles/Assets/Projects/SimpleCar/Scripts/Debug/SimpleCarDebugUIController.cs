@@ -20,6 +20,6 @@ public class SimpleCarDebugUIController : MonoBehaviour
     {
         RPMBar.SetCurrentValue(Car.EngineRpm);
         GearBar.SetCurrentValue(Car.CurrentGear + 1);
-        SpeedBar.SetCurrentValue(Car.CurrentSpeed * 3.6f);
+        SpeedBar.SetCurrentValue(Car.Speedometer * 3.6f);
     }
 }

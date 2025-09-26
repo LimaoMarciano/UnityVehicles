@@ -120,6 +120,15 @@ public partial class @CarInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
+                    ""name"": ""Clutch"",
+                    ""type"": ""Value"",
+                    ""id"": ""937fa71b-1ef8-4dd0-bae9-1fc65945c39d"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
                     ""name"": ""UpShift"",
                     ""type"": ""Button"",
                     ""id"": ""a08d15a4-d6d6-4aa4-a942-96b548e540bc"",
@@ -385,6 +394,28 @@ public partial class @CarInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Look"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6002d9d9-a166-4849-87b0-11223ff09667"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Clutch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""782c39fe-cbbf-4337-ad97-18890a9abfac"",
+                    ""path"": ""<Keyboard>/alt"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard"",
+                    ""action"": ""Clutch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -419,6 +450,7 @@ public partial class @CarInputActions: IInputActionCollection2, IDisposable
         m_Car_Steering = m_Car.FindAction("Steering", throwIfNotFound: true);
         m_Car_Throttle = m_Car.FindAction("Throttle", throwIfNotFound: true);
         m_Car_Brakes = m_Car.FindAction("Brakes", throwIfNotFound: true);
+        m_Car_Clutch = m_Car.FindAction("Clutch", throwIfNotFound: true);
         m_Car_UpShift = m_Car.FindAction("UpShift", throwIfNotFound: true);
         m_Car_DownShift = m_Car.FindAction("DownShift", throwIfNotFound: true);
         m_Car_Handbrake = m_Car.FindAction("Handbrake", throwIfNotFound: true);
@@ -507,6 +539,7 @@ public partial class @CarInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Car_Steering;
     private readonly InputAction m_Car_Throttle;
     private readonly InputAction m_Car_Brakes;
+    private readonly InputAction m_Car_Clutch;
     private readonly InputAction m_Car_UpShift;
     private readonly InputAction m_Car_DownShift;
     private readonly InputAction m_Car_Handbrake;
@@ -535,6 +568,10 @@ public partial class @CarInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Car/Brakes".
         /// </summary>
         public InputAction @Brakes => m_Wrapper.m_Car_Brakes;
+        /// <summary>
+        /// Provides access to the underlying input action "Car/Clutch".
+        /// </summary>
+        public InputAction @Clutch => m_Wrapper.m_Car_Clutch;
         /// <summary>
         /// Provides access to the underlying input action "Car/UpShift".
         /// </summary>
@@ -590,6 +627,9 @@ public partial class @CarInputActions: IInputActionCollection2, IDisposable
             @Brakes.started += instance.OnBrakes;
             @Brakes.performed += instance.OnBrakes;
             @Brakes.canceled += instance.OnBrakes;
+            @Clutch.started += instance.OnClutch;
+            @Clutch.performed += instance.OnClutch;
+            @Clutch.canceled += instance.OnClutch;
             @UpShift.started += instance.OnUpShift;
             @UpShift.performed += instance.OnUpShift;
             @UpShift.canceled += instance.OnUpShift;
@@ -625,6 +665,9 @@ public partial class @CarInputActions: IInputActionCollection2, IDisposable
             @Brakes.started -= instance.OnBrakes;
             @Brakes.performed -= instance.OnBrakes;
             @Brakes.canceled -= instance.OnBrakes;
+            @Clutch.started -= instance.OnClutch;
+            @Clutch.performed -= instance.OnClutch;
+            @Clutch.canceled -= instance.OnClutch;
             @UpShift.started -= instance.OnUpShift;
             @UpShift.performed -= instance.OnUpShift;
             @UpShift.canceled -= instance.OnUpShift;
@@ -727,6 +770,13 @@ public partial class @CarInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnBrakes(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Clutch" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnClutch(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "UpShift" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

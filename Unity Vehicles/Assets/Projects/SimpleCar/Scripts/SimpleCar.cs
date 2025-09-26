@@ -6,8 +6,7 @@ namespace UnityVehicles.SimpleCar
     public enum DriveTrainType
     {
         FWD,
-        RWD,
-        AWD
+        RWD
     }
 
     public class SimpleCar : MonoBehaviour
@@ -27,6 +26,7 @@ namespace UnityVehicles.SimpleCar
         public float RpmRange = 9000f;
         public float IdleRpm = 500f;
         public float EngineBrake = 100f;
+        public float UnclutchedResponse = 0.8f;
         public AnimationCurve PowerCurve;
 
         [Header("GearBox")]
@@ -50,19 +50,31 @@ namespace UnityVehicles.SimpleCar
         [HideInInspector] public float SteeringInput = 0f;
         [HideInInspector] public float AcceleratorInput = 0f;
         [HideInInspector] public float BrakesInput = 0f;
+        [HideInInspector]
+        public float ClutchInput
+        {
+            set
+            { clutchGrip = Mathf.Clamp01(1 - value); }
+            get
+            { return 1 - clutchGrip; }
+        }
 
         public int CurrentGear { get; private set; } = 0;
         public float EngineRpm { get; private set; } = 0f;
-        public float CurrentSpeed { get; private set; } = 0f;
+        public float ActualRpm { get; private set; } = 0f;
+        public float Speedometer { get; private set; } = 0f;
         public float EngineTorque { get; private set; } = 0f;
         public float DriveTrainTorque { get; private set; } = 0f;
-        
+       
         float wheelBase;
         float rearAxleTrack;
         float drivetrainEfficiency = 1f;
         SimpleCarWheel[] drivenWheels;
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        float clutchGrip = 1f;
+        float clutchSmoothDampVel = 0f;
+        float unclutchedRpm = 0f;
+
         void Start()
         {
             rb = GetComponent<Rigidbody>();
@@ -84,96 +96,146 @@ namespace UnityVehicles.SimpleCar
                     drivenWheels[1] = RearRightWheel;
                     drivetrainEfficiency = 0.88f;
                     break;
-                case DriveTrainType.AWD:
-                    drivenWheels = new SimpleCarWheel[4];
-                    drivenWheels[0] = FrontLeftWheel;
-                    drivenWheels[1] = FrontRightWheel;
-                    drivenWheels[2] = RearLeftWheel;
-                    drivenWheels[3] = RearRightWheel;
-                    drivetrainEfficiency = 0.85f;
-                    break;
             }
         }
 
-        // Update is called once per frame
         void FixedUpdate()
-        {          
+        {
             ApplySteering(SteeringInput);
             ApplyBrakes(BrakesInput);
             ApplyTorqueToDrivenWheels(AcceleratorInput);
 
-            /*
-            EngineRpm = GetDrivenWheelsAverageRpm() * GearRatios[CurrentGear] * DifferentialGearRatio;
-            EngineRpm = Mathf.Max(IdleRpm, EngineRpm);
-            currentPower = PowerCurve.Evaluate(Mathf.Clamp01(EngineRpm / RpmRange)) * HorsePower;
-            EngineTorque = (currentPower * 5252f) / EngineRpm;
-            ApplyTorqueToDrivenWheels(EngineTorque * GearRatios[CurrentGear] * DifferentialGearRatio);
-            */
-            CalculateCurrentSpeed();
+            SetSpeedometerReading();
         }
 
+        /// <summary>
+        /// Applies steering angle to front wheels based on Ackermann geometry.
+        /// </summary>
+        /// <param name="input">Steering input in -1/+1 range</param>
+        /// <see cref="Ackerman Steering Explained" href="https://www.youtube.com/watch?v=oYMMdjbmQXc"/>
         void ApplySteering(float input)
         {
+            
             Vector2 steeringAngles = CalculateAckermannSteering(input, wheelBase, TurnRadius, rearAxleTrack);
             FrontLeftWheel.WheelCollider.steerAngle = steeringAngles.x;
             FrontRightWheel.WheelCollider.steerAngle = steeringAngles.y;
         }
 
+        /// <summary>
+        /// Applies brakes torque according to set brake bias and handbrake torque
+        /// </summary>
+        /// <param name="input"></param>
         void ApplyBrakes(float input)
         {
             FrontLeftWheel.WheelCollider.brakeTorque = FrontRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * BrakeBias * input);
             RearLeftWheel.WheelCollider.brakeTorque = RearRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * (1f- BrakeBias) * input);
         }
 
+        /// <summary>
+        /// Applies torque to the driven wheels based on current engine RPM. This includes engine braking when not accelerating.
+        /// </summary>
+        /// <param name="acceleratorInput"></param>
+        /// <see cref="What is Engine Braking" href="https://www.youtube.com/watch?v=o8Cta2cC2Co"/>
         void ApplyTorqueToDrivenWheels(float acceleratorInput)
         {
-            EngineRpm = GetDrivenWheelsAverageRpm() * GearRatios[CurrentGear] * DifferentialGearRatio;
-            EngineRpm = Mathf.Max(IdleRpm, EngineRpm);
+            /* Engine RPM when completly unclutched using a fake smoothed function that follows how much the accelerator is pressed.
+             * Min value is set to idle rpm, since realistically, the engine would stall and turn off below that without clutch input.
+             * This hack kinda simulates a trained driver behavior, where you would press the clutch at low speed or at a stop.
+             */
+            float targetRpm = Mathf.Max(IdleRpm, RpmRange * Mathf.Clamp01(acceleratorInput));
+            unclutchedRpm = Mathf.SmoothDamp(unclutchedRpm, targetRpm, ref clutchSmoothDampVel, UnclutchedResponse);
 
-            float currentRpmRange = Mathf.Clamp01(EngineRpm / RpmRange);
+            /* Engine RPM when clutched, completly locked to the driven wheels
+             */
+            float clutchedRpm = GetDrivenWheelsAverageRpm() * GearRatios[CurrentGear] * DifferentialGearRatio;
+            
+            /*We also store the actual RPM without any clamping to use further for engine braking calculation.
+             */
+            ActualRpm = clutchedRpm;
 
-            if (AcceleratorInput > 0)
+            /*Final RPM is interpolated between clutched and the fake unclutched behavior depending on how much the clutch is pressed.
+             *Like the fake unclutched RPM, we set idle rpm as minimum.
+             *(This is a very simplistic aproximation of the slipping nature between engine and drivetrain when clutch is halfway pressed)
+             */
+            EngineRpm = Mathf.Lerp(unclutchedRpm, Mathf.Max(IdleRpm, Mathf.Abs(ActualRpm)), clutchGrip);
+
+            /*If we have any accelerator input, calculate torque based on power curve;
+             *If not, we apply negative torque proportional to current RPM, simulating an engine braking effect.
+             *In a real car, engine braking comes from friction between the moving parts of the engine/drivetrain and vacuum inside the engine chamber when not accelerating.
+             *Since this braking force goes throught the drivetrain, it's multiplied by gear ratios, being stronger on lower gears. It's also stronger on higher RPMs (by friction)
+            */
+            if (AcceleratorInput > 0.01f)
             {
+                float currentRpmRange = Mathf.Clamp01(EngineRpm / RpmRange);
                 float currentPower = PowerCurve.Evaluate(currentRpmRange) * HorsePower;
                 EngineTorque = currentPower * 5252f / EngineRpm * acceleratorInput;
             } 
             else
             {
-                EngineTorque = -EngineBrake * currentRpmRange;
+                /* Engine braking
+                 */
+                EngineTorque = -EngineBrake * (ActualRpm / RpmRange);    
             }
 
-            DriveTrainTorque = EngineTorque * GearRatios[CurrentGear] * DifferentialGearRatio * drivetrainEfficiency;
+            /* The torque produced by the engine is multiplied by the current gear and diffential.
+             * We also apply an efficiency value, since a real car suffers some energy dissipation through the drivetrain.
+             * How much of the produced torque is actually transmitted to the wheel depends on how much the clutch is pressed.
+             */
+             DriveTrainTorque = EngineTorque * GearRatios[CurrentGear] * DifferentialGearRatio * drivetrainEfficiency * clutchGrip;
 
+            /* This is a approximation of how a open differential distributes torque between the driven wheels. 
+             */
             foreach (SimpleCarWheel wheelCollider in drivenWheels)
             {
                 wheelCollider.WheelCollider.motorTorque = DriveTrainTorque * 0.5f;
             }
         }
 
-        void CalculateCurrentSpeed()
+        /// <summary>
+        /// Sets speedometer speed reading based on drivetrain RPM.
+        /// </summary>
+        void SetSpeedometerReading()
         {
+            /* Most road cars calculate speed by measuring the drivetrain rotation speed and wheel radius to deduce the tire surface speed 
+             * (that's why changing tire radius throws off speed readings on a real car)
+             * Conclusion: the speedometer reads the speed of the spinning wheels surface, not the actual physical speed that the car is travelling.
+             * This is just a touch to make speed readings more immersive, since a burnout in real life would cause the speedometer to spike even though the car is not moving.
+             * Dials going crazy are cool for the player :D
+             */
+            
             if (GearRatios[CurrentGear] == 0f || DifferentialGearRatio == 0f)
             {
-                CurrentSpeed = 0f;
+                Speedometer = 0f;
             } 
             else
             {
-                CurrentSpeed = EngineRpm / GearRatios[CurrentGear] / DifferentialGearRatio / 60f * FrontLeftWheel.WheelCollider.radius * 2f * Mathf.PI;
+                Speedometer = EngineRpm / GearRatios[CurrentGear] / DifferentialGearRatio / 60f * FrontLeftWheel.WheelCollider.radius * 2f * Mathf.PI * clutchGrip;
             }
         }
 
+        /// <summary>
+        /// Returns average RPM of the driven wheels. Useful to deduce engine RPM on an open differential car.
+        /// </summary>
+        /// <returns></returns>
         float GetDrivenWheelsAverageRpm ()
         {
+
+            /* Engine and wheels are locked together when the car is clutched. Getting an average of the driven wheels
+             * is a good approximation of engine RPM in a car with an open differential, but innacurate for locked or limited slip differentials.
+             */
             float wheelRpmAvg = 0f;
             foreach (SimpleCarWheel simpleCarWheel in drivenWheels)
             {
-                wheelRpmAvg += Mathf.Abs(simpleCarWheel.WheelCollider.rpm);
+                wheelRpmAvg += simpleCarWheel.WheelCollider.rpm;
             }
 
             wheelRpmAvg = wheelRpmAvg / drivenWheels.Length;
             return wheelRpmAvg;
         }
 
+        /// <summary>
+        /// Increases current gear sequentially
+        /// </summary>
         public void IncreaseGear()
         {
             if (CurrentGear < GearRatios.Length - 1)
@@ -182,6 +244,9 @@ namespace UnityVehicles.SimpleCar
             }
         }
 
+        /// <summary>
+        /// Decreases current gear sequentially
+        /// </summary>
         public void DecreaseGear()
         {
             if (CurrentGear > 0)
@@ -206,10 +271,11 @@ namespace UnityVehicles.SimpleCar
         }
 
         /// <summary>
-        /// Calculate steering angle. Input value is in range between -1 (left) and +1 (right).
-        /// The maximum turn radius is set on turnRadius variable.
+        /// Calculate steering angle for both wheels. Input value is in range between -1 (left) and +1 (right).
+        /// The maximum turn radius is set by the turnRadius variable.
         /// </summary>
         /// <param name="steeringInput">Value between -1 (left) and +1 (right)</param>
+        /// <returns>Steering angle for both wheels packaged in a Vector2 (x = left, y = right)</returns>
         Vector2 CalculateAckermannSteering(float steeringInput, float wheelBase, float turnRadius, float rearAxleTrack)
         {
             Vector2 steeringAngles = Vector2.zero;

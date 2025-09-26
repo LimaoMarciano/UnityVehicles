@@ -44,7 +44,8 @@ namespace UnityVehicles.SimpleCar
 
             car.AcceleratorInput = carInputActions.Car.Throttle.ReadValue<float>();
             car.BrakesInput = carInputActions.Car.Brakes.ReadValue<float>();
-            
+            car.ClutchInput = carInputActions.Car.Clutch.ReadValue<float>();
+
             if (GearUpShift.WasPressedThisFrame())
             {
                 car.IncreaseGear();

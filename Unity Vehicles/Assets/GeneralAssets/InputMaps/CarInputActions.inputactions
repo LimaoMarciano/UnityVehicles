@@ -34,6 +34,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "Clutch",
+                    "type": "Value",
+                    "id": "937fa71b-1ef8-4dd0-bae9-1fc65945c39d",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "UpShift",
                     "type": "Button",
                     "id": "a08d15a4-d6d6-4aa4-a942-96b548e540bc",
@@ -297,6 +306,28 @@
                     "processors": "ScaleVector2(x=0.1,y=0.1)",
                     "groups": ";Keyboard",
                     "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6002d9d9-a166-4849-87b0-11223ff09667",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Clutch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "782c39fe-cbbf-4337-ad97-18890a9abfac",
+                    "path": "<Keyboard>/alt",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard",
+                    "action": "Clutch",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

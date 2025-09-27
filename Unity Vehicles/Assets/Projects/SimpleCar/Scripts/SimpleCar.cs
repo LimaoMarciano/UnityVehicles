@@ -73,7 +73,7 @@ namespace UnityVehicles.SimpleCar
 
         public int CurrentGear { get; private set; } = 0;
         public float EngineRpm { get; private set; } = 0f;
-        public float ActualRpm { get; private set; } = 0f;
+        public float DriveTrainRpm { get; private set; } = 0f;
         public float Speedometer { get; private set; } = 0f;
         public float EngineTorque { get; private set; } = 0f;
         public float DriveTrainTorque { get; private set; } = 0f;
@@ -90,6 +90,7 @@ namespace UnityVehicles.SimpleCar
         float clutchGrip = 1f;
         float clutchSmoothDampVel = 0f;
         float unclutchedRpm = 0f;
+        float wheelAverageRpm;
 
         void Start()
         {
@@ -170,22 +171,30 @@ namespace UnityVehicles.SimpleCar
              * Min value is set to idle rpm, since realistically, the engine would stall and turn off below that without clutch input.
              * This hack kinda simulates a trained driver behavior, where you would press the clutch at low speed or at a stop.
              */
-            float targetRpm = Mathf.Max(IdleRpm, RpmRange * Mathf.Clamp01(acceleratorInput));
-            unclutchedRpm = Mathf.SmoothDamp(unclutchedRpm, targetRpm, ref clutchSmoothDampVel, UnclutchedResponse);
+            if (clutchGrip < 0.99f)
+            {
+                float targetRpm = Mathf.Max(IdleRpm, RpmRange * Mathf.Clamp01(acceleratorInput));
+                unclutchedRpm = Mathf.SmoothDamp(unclutchedRpm, targetRpm, ref clutchSmoothDampVel, UnclutchedResponse);
+            } 
+            else
+            {
+                /* Keep updating unclutched rpm to match enginerpm, so when we disengage clutch, the fake RPM starts where the real RPM was
+                 * This avoids a weird "RPM reset" when transitioning from clutched to unclutched.
+                 */
+                unclutchedRpm = EngineRpm;
+                clutchSmoothDampVel = 0f;
+            }
 
             /* Engine RPM when clutched, completly locked to the driven wheels
              */
-            float clutchedRpm = GetDrivenWheelsAverageRpm() * GearRatios[CurrentGear] * DifferentialGearRatio;
-            
-            /*We also store the actual RPM without any clamping to use further for engine braking calculation.
-             */
-            ActualRpm = clutchedRpm;
+            wheelAverageRpm = GetDrivenWheelsAverageRpm();
+            DriveTrainRpm = wheelAverageRpm * GearRatios[CurrentGear] * DifferentialGearRatio;
 
             /*Final RPM is interpolated between clutched and the fake unclutched behavior depending on how much the clutch is pressed.
              *Like the fake unclutched RPM, we set idle rpm as minimum.
              *(This is a very simplistic aproximation of the slipping nature between engine and drivetrain when clutch is halfway pressed)
              */
-            EngineRpm = Mathf.Lerp(unclutchedRpm, Mathf.Max(IdleRpm, Mathf.Abs(ActualRpm)), clutchGrip);
+            EngineRpm = Mathf.Lerp(unclutchedRpm, Mathf.Max(IdleRpm, Mathf.Abs(DriveTrainRpm)), clutchGrip);
 
             /*If we have any accelerator input, calculate torque based on power curve;
              *If not, we apply negative torque proportional to current RPM, simulating an engine braking effect.
@@ -202,7 +211,7 @@ namespace UnityVehicles.SimpleCar
             {
                 /* Engine braking
                  */
-                EngineTorque = -EngineBrake * (ActualRpm / RpmRange);    
+                EngineTorque = -EngineBrake * (DriveTrainRpm / RpmRange);    
             }
 
             /* The torque produced by the engine is multiplied by the current gear and diffential.
@@ -275,6 +284,10 @@ namespace UnityVehicles.SimpleCar
             }
         }
 
+        /// <summary>
+        /// Updates wheels internal values. This should be called at the beginning of FixedUpdate
+        /// to guarantee that all wheels values are up to date for subsequent calculations.
+        /// </summary>
         void UpdateWheelsValues()
         {
             FrontRightWheel.UpdateValues();
@@ -294,15 +307,7 @@ namespace UnityVehicles.SimpleCar
              * This is just a touch to make speed readings more immersive, since a burnout in real life would cause the speedometer to spike even though the car is not moving.
              * Dials going crazy are cool for the player :D
              */
-
-            if (GearRatios[CurrentGear] == 0f || DifferentialGearRatio == 0f)
-            {
-                Speedometer = 0f;
-            } 
-            else
-            {
-                Speedometer = EngineRpm / GearRatios[CurrentGear] / DifferentialGearRatio / 60f * FrontLeftWheel.WheelCollider.radius * 2f * Mathf.PI * clutchGrip;
-            }
+            Speedometer = wheelAverageRpm / 60f * FrontLeftWheel.WheelCollider.radius * 2f * Mathf.PI;
         }
 
         /// <summary>

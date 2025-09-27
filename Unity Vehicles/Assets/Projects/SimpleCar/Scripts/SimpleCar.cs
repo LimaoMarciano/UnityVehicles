@@ -6,7 +6,14 @@ namespace UnityVehicles.SimpleCar
     public enum DriveTrainType
     {
         FWD,
-        RWD
+        RWD,
+        AWD
+    }
+
+    public enum Axle
+    {
+        Front,
+        Rear
     }
 
     public class SimpleCar : MonoBehaviour
@@ -35,6 +42,10 @@ namespace UnityVehicles.SimpleCar
         public float DifferentialGearRatio = 4.87f;
         [Range(0f, 1f)] public float DifferentialLock = 0f;
 
+        [Header("Suspension")]
+        public float FrontAntirollBarStrenght = 600f;
+        public float RearAntirollBarStrenght = 300f;
+
         [Header("Brakes")]
         public float BrakePower = 1000f;
         [Range(0f, 1f)]
@@ -50,6 +61,7 @@ namespace UnityVehicles.SimpleCar
         [HideInInspector] public float SteeringInput = 0f;
         [HideInInspector] public float AcceleratorInput = 0f;
         [HideInInspector] public float BrakesInput = 0f;
+        
         [HideInInspector]
         public float ClutchInput
         {
@@ -65,7 +77,11 @@ namespace UnityVehicles.SimpleCar
         public float Speedometer { get; private set; } = 0f;
         public float EngineTorque { get; private set; } = 0f;
         public float DriveTrainTorque { get; private set; } = 0f;
-       
+        public float FRSuspensionTravel { get; private set; } = 0f;
+        public float FLSuspensionTravel { get; private set; } = 0f;
+        public float RRSuspensionTravel { get; private set; } = 0f;
+        public float RLSuspensionTravel { get; private set; } = 0f;
+
         float wheelBase;
         float rearAxleTrack;
         float drivetrainEfficiency = 1f;
@@ -96,14 +112,26 @@ namespace UnityVehicles.SimpleCar
                     drivenWheels[1] = RearRightWheel;
                     drivetrainEfficiency = 0.88f;
                     break;
+                case DriveTrainType.AWD:
+                    drivenWheels = new SimpleCarWheel[4];
+                    drivenWheels[0] = FrontLeftWheel;
+                    drivenWheels[1] = FrontRightWheel;
+                    drivenWheels[2] = RearLeftWheel;
+                    drivenWheels[3] = RearRightWheel;
+                    drivetrainEfficiency = 0.83f;
+                    break;
             }
         }
 
         void FixedUpdate()
         {
+            UpdateWheelsValues();
+            
             ApplySteering(SteeringInput);
             ApplyBrakes(BrakesInput);
             ApplyTorqueToDrivenWheels(AcceleratorInput);
+            ApplyAntirollBarForce(Axle.Front, FrontAntirollBarStrenght);
+            ApplyAntirollBarForce(Axle.Rear, RearAntirollBarStrenght);
 
             SetSpeedometerReading();
         }
@@ -187,8 +215,72 @@ namespace UnityVehicles.SimpleCar
              */
             foreach (SimpleCarWheel wheelCollider in drivenWheels)
             {
-                wheelCollider.WheelCollider.motorTorque = DriveTrainTorque * 0.5f;
+                wheelCollider.WheelCollider.motorTorque = DriveTrainTorque / drivenWheels.Length;
             }
+        }
+
+        /// <summary>
+        /// Applies antiroll force to the selected wheel axle
+        /// </summary>
+        /// <param name="axle">Which axle will the force be applied</param>
+        /// <param name="strength">How strong is the max roll reaction force on the opposing wheel</param>
+        /// <see cref="How Anti-Roll Bars Work" href="https://www.youtube.com/watch?v=_liGnV3PTiQ"/>
+        void ApplyAntirollBarForce (Axle axle, float strength)
+        {
+            /* When the suspension on one side compresses, the antiroll bar applies compression force to the opposing side suspension.
+             * This creates a force that fights against the car body leaning to the sides, increasing roll stability.
+             * 
+             * Besides protecting the car agains rolling, the antiroll bars have a big influence on handling.
+             * By fighting against roll on cornering, the weight is distributed more evenly between left and right tires, resulting in better cornering grip and stability.
+             * There's an optimal balance, though. 
+             * Too strong antiroll bars can compromise suspension independence, resulting in lower grip and worse bump absortion, making the car twitchy on uneven terrain.
+             * On cornering, it can also cause the outside wheel to lift off the ground in extreme cases.
+             * 
+             * Balance between front and rear rollbars are also important. A stiffer front increases understeer, a stiffer rear increases oversteer.
+             * Changing this balance is very helpful to achieve the desired handling caracteristic.
+             */
+            
+            float leftTravel;
+            float rightTravel;
+            SimpleCarWheel leftWheel;
+            SimpleCarWheel rightWheel;
+
+            if (axle == Axle.Front)
+            {
+                leftWheel = FrontLeftWheel;
+                leftTravel = leftWheel.SuspensionTravel;
+
+                rightWheel = FrontRightWheel;
+                rightTravel = rightWheel.SuspensionTravel;
+            }
+            else
+            {
+                leftWheel = RearLeftWheel;
+                leftTravel = leftWheel.SuspensionTravel;
+
+                rightWheel = RearRightWheel;
+                rightTravel = rightWheel.SuspensionTravel;
+            }
+
+            float antiRollForce = (leftTravel - rightTravel) * strength;
+
+            if (leftWheel.isGrounded)
+            {
+                rb.AddForceAtPosition(leftWheel.transform.up * -antiRollForce, leftWheel.transform.position, ForceMode.Force);
+            }
+
+            if (rightWheel.isGrounded)
+            {
+                rb.AddForceAtPosition(rightWheel.transform.up * antiRollForce, rightWheel.transform.position, ForceMode.Force);
+            }
+        }
+
+        void UpdateWheelsValues()
+        {
+            FrontRightWheel.UpdateValues();
+            FrontLeftWheel.UpdateValues();
+            RearRightWheel.UpdateValues();
+            RearLeftWheel.UpdateValues();
         }
 
         /// <summary>
@@ -202,7 +294,7 @@ namespace UnityVehicles.SimpleCar
              * This is just a touch to make speed readings more immersive, since a burnout in real life would cause the speedometer to spike even though the car is not moving.
              * Dials going crazy are cool for the player :D
              */
-            
+
             if (GearRatios[CurrentGear] == 0f || DifferentialGearRatio == 0f)
             {
                 Speedometer = 0f;

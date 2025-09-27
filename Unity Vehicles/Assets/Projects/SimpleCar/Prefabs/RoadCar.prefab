@@ -44,8 +44,8 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.28
   m_SuspensionSpring:
-    spring: 32000
-    damper: 4200
+    spring: 30000
+    damper: 3800
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -130,7 +130,7 @@ WheelCollider:
   m_Radius: 0.28
   m_SuspensionSpring:
     spring: 28000
-    damper: 4000
+    damper: 3800
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -214,8 +214,8 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.28
   m_SuspensionSpring:
-    spring: 32000
-    damper: 4200
+    spring: 30000
+    damper: 3800
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -300,7 +300,7 @@ WheelCollider:
   m_Radius: 0.28
   m_SuspensionSpring:
     spring: 28000
-    damper: 4000
+    damper: 3800
     targetPosition: 0.3
   m_SuspensionDistance: 0.25
   m_ForceAppPointDistance: 0.67
@@ -640,7 +640,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleCar
   CenterOfMassOffset: {x: 0, y: 0, z: 0}
-  DriveTrain: 0
+  DriveTrain: 1
   TurnRadius: 10
   SteeringWheelRange: 900
   HorsePower: 78
@@ -690,6 +690,8 @@ MonoBehaviour:
   ReverseGearRatio: 3.31
   DifferentialGearRatio: 4.87
   DifferentialLock: 0
+  FrontAntirollBarStrenght: 700
+  RearAntirollBarStrenght: 500
   BrakePower: 1700
   BrakeBias: 0.65
   FrontRightWheel: {fileID: 8262578627053952078}

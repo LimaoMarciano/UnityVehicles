@@ -54,6 +54,7 @@ namespace UnityVehicles.SimpleCar
 
             car.AcceleratorInput = carInputActions.Car.Throttle.ReadValue<float>() * autoClutchAccOverride;
             car.BrakesInput = carInputActions.Car.Brakes.ReadValue<float>();
+            car.HandbrakeInput = carInputActions.Car.Handbrake.ReadValue<float>();
             
             if (IsAutoclutchEnabled)
             {

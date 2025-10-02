@@ -40,7 +40,6 @@ namespace UnityVehicles.SimpleCar
         public float[] GearRatios = new float[5] { 4.27f, 2.35f, 1.48f, 1.05f, 0.8f };
         public float ReverseGearRatio = 3.31f;
         public float DifferentialGearRatio = 4.87f;
-        [Range(0f, 1f)] public float DifferentialLock = 0f;
 
         [Header("Suspension")]
         public float FrontAntirollBarStrenght = 600f;
@@ -50,6 +49,7 @@ namespace UnityVehicles.SimpleCar
         public float BrakePower = 1000f;
         [Range(0f, 1f)]
         public float BrakeBias = 0.5f;
+        public float HandbrakePower = 2000f;
 
         [Header("Wheels")]
         public SimpleCarWheel FrontRightWheel;
@@ -58,9 +58,10 @@ namespace UnityVehicles.SimpleCar
         public SimpleCarWheel RearLeftWheel;
 
         //Input
-        [HideInInspector] public float SteeringInput = 0f;
-        [HideInInspector] public float AcceleratorInput = 0f;
-        [HideInInspector] public float BrakesInput = 0f;
+        [HideInInspector] public float SteeringInput;
+        [HideInInspector] public float AcceleratorInput;
+        [HideInInspector] public float BrakesInput;
+        [HideInInspector] public float HandbrakeInput;
         
         [HideInInspector]
         public float ClutchInput
@@ -71,16 +72,17 @@ namespace UnityVehicles.SimpleCar
             { return 1 - clutchGrip; }
         }
 
-        public int CurrentGear { get; private set; } = 0;
-        public float EngineRpm { get; private set; } = 0f;
-        public float DriveTrainRpm { get; private set; } = 0f;
-        public float Speedometer { get; private set; } = 0f;
-        public float EngineTorque { get; private set; } = 0f;
-        public float DriveTrainTorque { get; private set; } = 0f;
-        public float FRSuspensionTravel { get; private set; } = 0f;
-        public float FLSuspensionTravel { get; private set; } = 0f;
-        public float RRSuspensionTravel { get; private set; } = 0f;
-        public float RLSuspensionTravel { get; private set; } = 0f;
+        public int CurrentGear { get; private set; }
+        public float CurrentGearRatio { get; private set; }
+        public float EngineRpm { get; private set; }
+        public float DriveTrainRpm { get; private set; }
+        public float Speedometer { get; private set; }
+        public float EngineTorque { get; private set; }
+        public float DriveTrainTorque { get; private set; }
+        public float FRSuspensionTravel { get; private set; }
+        public float FLSuspensionTravel { get; private set; }
+        public float RRSuspensionTravel { get; private set; } 
+        public float RLSuspensionTravel { get; private set; }
 
         float wheelBase;
         float rearAxleTrack;
@@ -88,14 +90,15 @@ namespace UnityVehicles.SimpleCar
         SimpleCarWheel[] drivenWheels;
 
         float clutchGrip = 1f;
-        float clutchSmoothDampVel = 0f;
-        float unclutchedRpm = 0f;
+        float clutchSmoothDampVel;
+        float unclutchedRpm;
         float wheelAverageRpm;
 
         void Start()
         {
             rb = GetComponent<Rigidbody>();
             rb.centerOfMass = CenterOfMassOffset;
+            CurrentGearRatio = GearRatios[CurrentGear];
 
             (wheelBase, rearAxleTrack) = GetWheelBaseAndRearAxleTrack();
 
@@ -129,7 +132,7 @@ namespace UnityVehicles.SimpleCar
             UpdateWheelsValues();
             
             ApplySteering(SteeringInput);
-            ApplyBrakes(BrakesInput);
+            ApplyBrakes(BrakesInput, HandbrakeInput);
             ApplyTorqueToDrivenWheels(AcceleratorInput);
             ApplyAntirollBarForce(Axle.Front, FrontAntirollBarStrenght);
             ApplyAntirollBarForce(Axle.Rear, RearAntirollBarStrenght);
@@ -154,10 +157,10 @@ namespace UnityVehicles.SimpleCar
         /// Applies brakes torque according to set brake bias and handbrake torque
         /// </summary>
         /// <param name="input"></param>
-        void ApplyBrakes(float input)
+        void ApplyBrakes(float input, float handbrake)
         {
             FrontLeftWheel.WheelCollider.brakeTorque = FrontRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * BrakeBias * input);
-            RearLeftWheel.WheelCollider.brakeTorque = RearRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * (1f- BrakeBias) * input);
+            RearLeftWheel.WheelCollider.brakeTorque = RearRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * (1f- BrakeBias) * input) + HandbrakeInput * HandbrakePower;
         }
 
         /// <summary>
@@ -167,6 +170,11 @@ namespace UnityVehicles.SimpleCar
         /// <see cref="What is Engine Braking" href="https://www.youtube.com/watch?v=o8Cta2cC2Co"/>
         void ApplyTorqueToDrivenWheels(float acceleratorInput)
         {
+            if (CurrentGear == -1)
+            {
+                clutchGrip = 0f;
+            }
+
             /* Engine RPM when completly unclutched using a fake smoothed function that follows how much the accelerator is pressed.
              * Min value is set to idle rpm, since realistically, the engine would stall and turn off below that without clutch input.
              * This hack kinda simulates a trained driver behavior, where you would press the clutch at low speed or at a stop.
@@ -188,7 +196,7 @@ namespace UnityVehicles.SimpleCar
             /* Engine RPM when clutched, completly locked to the driven wheels
              */
             wheelAverageRpm = GetDrivenWheelsAverageRpm();
-            DriveTrainRpm = wheelAverageRpm * GearRatios[CurrentGear] * DifferentialGearRatio;
+            DriveTrainRpm = wheelAverageRpm * CurrentGearRatio * DifferentialGearRatio;
 
             /*Final RPM is interpolated between clutched and the fake unclutched behavior depending on how much the clutch is pressed.
              *Like the fake unclutched RPM, we set idle rpm as minimum.
@@ -218,7 +226,7 @@ namespace UnityVehicles.SimpleCar
              * We also apply an efficiency value, since a real car suffers some energy dissipation through the drivetrain.
              * How much of the produced torque is actually transmitted to the wheel depends on how much the clutch is pressed.
              */
-             DriveTrainTorque = EngineTorque * GearRatios[CurrentGear] * DifferentialGearRatio * drivetrainEfficiency * clutchGrip;
+             DriveTrainTorque = EngineTorque * CurrentGearRatio * DifferentialGearRatio * drivetrainEfficiency * clutchGrip;
 
             /* This is a approximation of how a open differential distributes torque between the driven wheels. 
              */
@@ -307,7 +315,7 @@ namespace UnityVehicles.SimpleCar
              * This is just a touch to make speed readings more immersive, since a burnout in real life would cause the speedometer to spike even though the car is not moving.
              * Dials going crazy are cool for the player :D
              */
-            Speedometer = wheelAverageRpm / 60f * FrontLeftWheel.WheelCollider.radius * 2f * Mathf.PI;
+            Speedometer = wheelAverageRpm / 60f * drivenWheels[0].WheelCollider.radius * 2f * Mathf.PI;
         }
 
         /// <summary>
@@ -331,14 +339,53 @@ namespace UnityVehicles.SimpleCar
         }
 
         /// <summary>
+        /// Sets gear to a specific value. First gear is zero.
+        /// -1 is neutral gear and -2 is reverse gear. Values are clamped between existing gears.
+        /// </summary>
+        /// <param name="gear"></param>
+        public void SetGear(int gear)
+        {
+            if (wheelAverageRpm > 2f && gear == -2)
+            {
+                return;
+            }
+
+            /* If the gear we're changing into would cause the RPM to be above the limit, the gear change is rejected. 
+             */
+            if (gear >= 0)
+            {
+                float predictedRpm =  GearRatios[Mathf.Clamp(gear, 0, GearRatios.Length - 1)] * DifferentialGearRatio * wheelAverageRpm;
+
+                if (Mathf.Abs(predictedRpm) > RpmRange)
+                {
+                    return;
+                }
+            }
+
+            CurrentGear = Mathf.Clamp(gear, -2, GearRatios.Length - 1);
+            
+            if (gear >= 0)
+            {
+                CurrentGearRatio = GearRatios[CurrentGear];
+            }
+            else if (gear == -1)
+            {
+                //Neutral
+                CurrentGearRatio = 0f;
+            }
+            else
+            {
+                //Reverse
+                CurrentGearRatio = -ReverseGearRatio;
+            }
+        }
+
+        /// <summary>
         /// Increases current gear sequentially
         /// </summary>
         public void IncreaseGear()
         {
-            if (CurrentGear < GearRatios.Length - 1)
-            {
-                CurrentGear += 1;
-            }
+            SetGear(CurrentGear + 1);
         }
 
         /// <summary>
@@ -346,10 +393,7 @@ namespace UnityVehicles.SimpleCar
         /// </summary>
         public void DecreaseGear()
         {
-            if (CurrentGear > 0)
-            {
-                CurrentGear -= 1;
-            }
+            SetGear(CurrentGear - 1);
         }
 
         /// <summary>

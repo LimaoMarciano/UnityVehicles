@@ -628,7 +628,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7166797142511992438, guid: c1d93327382dc8742a5c6b12fa02ec9b, type: 3}
       propertyPath: WarningThreshold
-      value: 6000
+      value: 6200
       objectReference: {fileID: 0}
     - target: {fileID: 7805922877493268410, guid: c1d93327382dc8742a5c6b12fa02ec9b, type: 3}
       propertyPath: m_AnchorMax.y

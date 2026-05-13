@@ -1,13 +1,13 @@
-using UnityEditor;
 using UnityEngine;
+using System;
 
 namespace UnityVehicles.SimpleCar
 {
     public enum DriveTrainType
     {
-        FWD,
-        RWD,
-        AWD
+        Fwd,
+        Rwd,
+        Awd
     }
 
     public enum Axle
@@ -18,124 +18,107 @@ namespace UnityVehicles.SimpleCar
 
     public class SimpleCar : MonoBehaviour
     {
-
-        Rigidbody rb;
-
-        public Vector3 CenterOfMassOffset;
-        public DriveTrainType DriveTrain;
-
-        [Header("Steering")]
-        public float TurnRadius = 10f;
-        public float SteeringWheelRange = 900f;
-
-        [Header("Engine")]
-        public float HorsePower = 78f;
-        public float RpmRange = 9000f;
-        public float IdleRpm = 500f;
-        public float EngineBrake = 100f;
-        public float UnclutchedResponse = 0.8f;
-        public AnimationCurve PowerCurve;
-
-        [Header("GearBox")]
-        public float[] GearRatios = new float[5] { 4.27f, 2.35f, 1.48f, 1.05f, 0.8f };
-        public float ReverseGearRatio = 3.31f;
-        public float DifferentialGearRatio = 4.87f;
-
-        [Header("Suspension")]
-        public float FrontAntirollBarStrenght = 600f;
-        public float RearAntirollBarStrenght = 300f;
-
-        [Header("Brakes")]
-        public float BrakePower = 1000f;
-        [Range(0f, 1f)]
-        public float BrakeBias = 0.5f;
-        public float HandbrakePower = 2000f;
+        private Rigidbody rb;
+        
+        public ChassisData chassisData;
+        public SuspensionSettings suspension;
+        public TiresSettings tires;
+        
+        public EngineData engineData;
+        public GearboxData gearboxData;
+        public AntirollBarData antirollBarData;
+        public BrakesData brakesData;
 
         [Header("Wheels")]
-        public SimpleCarWheel FrontRightWheel;
-        public SimpleCarWheel FrontLeftWheel;
-        public SimpleCarWheel RearRightWheel;
-        public SimpleCarWheel RearLeftWheel;
+        public SimpleCarWheel frontLeftWheel;
+        public SimpleCarWheel frontRightWheel;
+        public SimpleCarWheel rearLeftWheel;
+        public SimpleCarWheel rearRightWheel;
 
         //Input
-        [HideInInspector] public float SteeringInput;
-        [HideInInspector] public float AcceleratorInput;
-        [HideInInspector] public float BrakesInput;
-        [HideInInspector] public float HandbrakeInput;
+        [NonSerialized] public float SteeringInput;
+        [NonSerialized] public float AcceleratorInput;
+        [NonSerialized] public float BrakesInput;
+        [NonSerialized] public float HandbrakeInput;
         
-        [HideInInspector]
-        public float ClutchInput
+        public float clutchInput
         {
-            set
-            { clutchGrip = Mathf.Clamp01(1 - value); }
-            get
-            { return 1 - clutchGrip; }
+            get => 1 - clutchGrip;
+            set => clutchGrip = Mathf.Clamp01(1 - value);
         }
 
-        public int CurrentGear { get; private set; }
-        public float CurrentGearRatio { get; private set; }
-        public float EngineRpm { get; private set; }
-        public float DriveTrainRpm { get; private set; }
-        public float Speedometer { get; private set; }
-        public float EngineTorque { get; private set; }
-        public float DriveTrainTorque { get; private set; }
-        public float FRSuspensionTravel { get; private set; }
-        public float FLSuspensionTravel { get; private set; }
-        public float RRSuspensionTravel { get; private set; } 
-        public float RLSuspensionTravel { get; private set; }
+        public int currentGear { get; private set; }
+        public float currentGearRatio { get; private set; }
+        public float engineRpm { get; private set; }
+        public float driveTrainRpm { get; private set; }
+        public float speedometer { get; private set; }
+        public float engineTorque { get; private set; }
+        public float driveTrainTorque { get; private set; }
+        public float frSuspensionTravel { get; private set; }
+        public float flSuspensionTravel { get; private set; }
+        public float rrSuspensionTravel { get; private set; } 
+        public float rlSuspensionTravel { get; private set; }
 
-        float wheelBase;
-        float rearAxleTrack;
-        float drivetrainEfficiency = 1f;
+        private float wheelBase;
+        private float rearAxleTrack;
+        private float drivetrainEfficiency = 1f;
         SimpleCarWheel[] drivenWheels;
 
-        float clutchGrip = 1f;
-        float clutchSmoothDampVel;
-        float unclutchedRpm;
-        float wheelAverageRpm;
+        private float clutchGrip = 1f;
+        private float clutchSmoothDampVel;
+        private float unclutchedRpm;
+        private float wheelAverageRpm;
 
-        void Start()
+        private void Start()
         {
+            
             rb = GetComponent<Rigidbody>();
-            rb.centerOfMass = CenterOfMassOffset;
-            CurrentGearRatio = GearRatios[CurrentGear];
-
+            rb.mass = chassisData.physicalProperties.mass;
+            rb.linearDamping = chassisData.physicalProperties.linearDamping;
+            rb.angularDamping = chassisData.physicalProperties.angularDamping;
+            rb.centerOfMass = chassisData.physicalProperties.centerOfMass;
+            
+            currentGearRatio = gearboxData.gearRatios[currentGear];
+            
             (wheelBase, rearAxleTrack) = GetWheelBaseAndRearAxleTrack();
+            
+            SetWheelsPosition();
 
-            switch(DriveTrain)
+            switch(chassisData.driveTrainType)
             {
-                case DriveTrainType.FWD:
+                case DriveTrainType.Fwd:
                     drivenWheels = new SimpleCarWheel[2];
-                    drivenWheels[0] = FrontLeftWheel;
-                    drivenWheels[1] = FrontRightWheel;
+                    drivenWheels[0] = frontLeftWheel;
+                    drivenWheels[1] = frontRightWheel;
                     drivetrainEfficiency = 0.92f;
                     break;
-                case DriveTrainType.RWD:
+                case DriveTrainType.Rwd:
                     drivenWheels = new SimpleCarWheel[2];
-                    drivenWheels[0] = RearLeftWheel;
-                    drivenWheels[1] = RearRightWheel;
+                    drivenWheels[0] = rearLeftWheel;
+                    drivenWheels[1] = rearRightWheel;
                     drivetrainEfficiency = 0.88f;
                     break;
-                case DriveTrainType.AWD:
+                case DriveTrainType.Awd:
                     drivenWheels = new SimpleCarWheel[4];
-                    drivenWheels[0] = FrontLeftWheel;
-                    drivenWheels[1] = FrontRightWheel;
-                    drivenWheels[2] = RearLeftWheel;
-                    drivenWheels[3] = RearRightWheel;
+                    drivenWheels[0] = frontLeftWheel;
+                    drivenWheels[1] = frontRightWheel;
+                    drivenWheels[2] = rearLeftWheel;
+                    drivenWheels[3] = rearRightWheel;
                     drivetrainEfficiency = 0.83f;
                     break;
             }
+            drivenWheels[0].wheelCollider.ConfigureVehicleSubsteps(10,4,4);
         }
 
-        void FixedUpdate()
+        private void FixedUpdate()
         {
             UpdateWheelsValues();
             
             ApplySteering(SteeringInput);
             ApplyBrakes(BrakesInput, HandbrakeInput);
             ApplyTorqueToDrivenWheels(AcceleratorInput);
-            ApplyAntirollBarForce(Axle.Front, FrontAntirollBarStrenght);
-            ApplyAntirollBarForce(Axle.Rear, RearAntirollBarStrenght);
+            ApplyAntirollBarForce(Axle.Front, antirollBarData.frontStrength);
+            ApplyAntirollBarForce(Axle.Rear, antirollBarData.rearStrength);
 
             SetSpeedometerReading();
         }
@@ -144,95 +127,100 @@ namespace UnityVehicles.SimpleCar
         /// Applies steering angle to front wheels based on Ackermann geometry.
         /// </summary>
         /// <param name="input">Steering input in -1/+1 range</param>
-        /// <see cref="Ackerman Steering Explained" href="https://www.youtube.com/watch?v=oYMMdjbmQXc"/>
-        void ApplySteering(float input)
+        /// <see href="https://www.youtube.com/watch?v=oYMMdjbmQXc">
+        ///     <cref>Ackerman Steering Explained</cref>
+        /// </see>
+        private void ApplySteering(float input)
         {
             
-            Vector2 steeringAngles = CalculateAckermannSteering(input, wheelBase, TurnRadius, rearAxleTrack);
-            FrontLeftWheel.WheelCollider.steerAngle = steeringAngles.x;
-            FrontRightWheel.WheelCollider.steerAngle = steeringAngles.y;
+            var steeringAngles = CalculateAckermannSteering(input, wheelBase, chassisData.wheelMount.turnRadius, rearAxleTrack);
+            frontLeftWheel.wheelCollider.steerAngle = steeringAngles.x;
+            frontRightWheel.wheelCollider.steerAngle = steeringAngles.y;
         }
 
         /// <summary>
         /// Applies brakes torque according to set brake bias and handbrake torque
         /// </summary>
-        /// <param name="input"></param>
-        void ApplyBrakes(float input, float handbrake)
+        /// <param name="input">Brakes input</param>
+        /// <param name="handbrakeInput">Handbrake input</param>
+        private void ApplyBrakes(float input, float handbrakeInput)
         {
-            FrontLeftWheel.WheelCollider.brakeTorque = FrontRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * BrakeBias * input);
-            RearLeftWheel.WheelCollider.brakeTorque = RearRightWheel.WheelCollider.brakeTorque = Mathf.Max(0f, BrakePower * (1f- BrakeBias) * input) + HandbrakeInput * HandbrakePower;
+            frontLeftWheel.wheelCollider.brakeTorque = frontRightWheel.wheelCollider.brakeTorque = Mathf.Max(0f, brakesData.torque * brakesData.bias * input);
+            rearLeftWheel.wheelCollider.brakeTorque = rearRightWheel.wheelCollider.brakeTorque = Mathf.Max(0f, brakesData.torque * (1f- brakesData.bias) * input) + handbrakeInput * brakesData.handbrakeTorque;
         }
 
         /// <summary>
         /// Applies torque to the driven wheels based on current engine RPM. This includes engine braking when not accelerating.
         /// </summary>
         /// <param name="acceleratorInput"></param>
-        /// <see cref="What is Engine Braking" href="https://www.youtube.com/watch?v=o8Cta2cC2Co"/>
-        void ApplyTorqueToDrivenWheels(float acceleratorInput)
+        /// <see href="https://www.youtube.com/watch?v=o8Cta2cC2Co">
+        ///     <cref>What is Engine Braking</cref>
+        /// </see>
+        private void ApplyTorqueToDrivenWheels(float acceleratorInput)
         {
-            if (CurrentGear == -1)
+            if (currentGear == -1)
             {
                 clutchGrip = 0f;
             }
 
-            /* Engine RPM when completly unclutched using a fake smoothed function that follows how much the accelerator is pressed.
+            /* Engine RPM when completely unclutched using a fake smoothed function that follows how much the accelerator is pressed.
              * Min value is set to idle rpm, since realistically, the engine would stall and turn off below that without clutch input.
              * This hack kinda simulates a trained driver behavior, where you would press the clutch at low speed or at a stop.
              */
             if (clutchGrip < 0.99f)
             {
-                float targetRpm = Mathf.Max(IdleRpm, RpmRange * Mathf.Clamp01(acceleratorInput));
-                unclutchedRpm = Mathf.SmoothDamp(unclutchedRpm, targetRpm, ref clutchSmoothDampVel, UnclutchedResponse);
+                var targetRpm = Mathf.Max(engineData.idleRpm, engineData.rpmRange * Mathf.Clamp01(acceleratorInput));
+                unclutchedRpm = Mathf.SmoothDamp(unclutchedRpm, targetRpm, ref clutchSmoothDampVel, engineData.unclutchedResponse);
             } 
             else
             {
-                /* Keep updating unclutched rpm to match enginerpm, so when we disengage clutch, the fake RPM starts where the real RPM was
+                /* Keep updating unclutched rpm to match EngineRpm, so when we disengage clutch, the fake RPM starts where the real RPM was
                  * This avoids a weird "RPM reset" when transitioning from clutched to unclutched.
                  */
-                unclutchedRpm = EngineRpm;
+                unclutchedRpm = engineRpm;
                 clutchSmoothDampVel = 0f;
             }
 
-            /* Engine RPM when clutched, completly locked to the driven wheels
+            /* Engine RPM when clutched, completely locked to the driven wheels
              */
             wheelAverageRpm = GetDrivenWheelsAverageRpm();
-            DriveTrainRpm = wheelAverageRpm * CurrentGearRatio * DifferentialGearRatio;
+            driveTrainRpm = wheelAverageRpm * currentGearRatio * gearboxData.differentialGearRatio;
 
             /*Final RPM is interpolated between clutched and the fake unclutched behavior depending on how much the clutch is pressed.
              *Like the fake unclutched RPM, we set idle rpm as minimum.
-             *(This is a very simplistic aproximation of the slipping nature between engine and drivetrain when clutch is halfway pressed)
+             *(This is a very simplistic approximation of the slipping nature between engine and drivetrain when clutch is halfway pressed)
              */
-            EngineRpm = Mathf.Lerp(unclutchedRpm, Mathf.Max(IdleRpm, Mathf.Abs(DriveTrainRpm)), clutchGrip);
+            engineRpm = Mathf.Lerp(unclutchedRpm, Mathf.Max(engineData.idleRpm, Mathf.Abs(driveTrainRpm)), clutchGrip);
 
             /*If we have any accelerator input, calculate torque based on power curve;
              *If not, we apply negative torque proportional to current RPM, simulating an engine braking effect.
              *In a real car, engine braking comes from friction between the moving parts of the engine/drivetrain and vacuum inside the engine chamber when not accelerating.
-             *Since this braking force goes throught the drivetrain, it's multiplied by gear ratios, being stronger on lower gears. It's also stronger on higher RPMs (by friction)
+             *Since this braking force goes through the drivetrain, it's multiplied by gear ratios, being stronger on lower gears. It's also stronger on higher RPMs (by friction)
             */
             if (AcceleratorInput > 0.01f)
             {
-                float currentRpmRange = Mathf.Clamp01(EngineRpm / RpmRange);
-                float currentPower = PowerCurve.Evaluate(currentRpmRange) * HorsePower;
-                EngineTorque = currentPower * 5252f / EngineRpm * acceleratorInput;
+                var currentRpmRange = Mathf.Clamp01(engineRpm / engineData.rpmRange);
+                var currentPower = engineData.powerCurve.Evaluate(currentRpmRange) * engineData.horsePower;
+                engineTorque = currentPower * 5252f / engineRpm * acceleratorInput;
             } 
             else
             {
                 /* Engine braking
                  */
-                EngineTorque = -EngineBrake * (DriveTrainRpm / RpmRange);    
+                engineTorque = -engineData.engineBrake * (driveTrainRpm / engineData.rpmRange);    
             }
 
-            /* The torque produced by the engine is multiplied by the current gear and diffential.
+            /* The torque produced by the engine is multiplied by the current gear and differential.
              * We also apply an efficiency value, since a real car suffers some energy dissipation through the drivetrain.
              * How much of the produced torque is actually transmitted to the wheel depends on how much the clutch is pressed.
              */
-             DriveTrainTorque = EngineTorque * CurrentGearRatio * DifferentialGearRatio * drivetrainEfficiency * clutchGrip;
+             driveTrainTorque = engineTorque * currentGearRatio * gearboxData.differentialGearRatio * drivetrainEfficiency * clutchGrip;
 
             /* This is a approximation of how a open differential distributes torque between the driven wheels. 
              */
-            foreach (SimpleCarWheel wheelCollider in drivenWheels)
+            foreach (var wheelCollider in drivenWheels)
             {
-                wheelCollider.WheelCollider.motorTorque = DriveTrainTorque / drivenWheels.Length;
+                wheelCollider.wheelCollider.motorTorque = driveTrainTorque / drivenWheels.Length;
             }
         }
 
@@ -241,45 +229,46 @@ namespace UnityVehicles.SimpleCar
         /// </summary>
         /// <param name="axle">Which axle will the force be applied</param>
         /// <param name="strength">How strong is the max roll reaction force on the opposing wheel</param>
-        /// <see cref="How Anti-Roll Bars Work" href="https://www.youtube.com/watch?v=_liGnV3PTiQ"/>
-        void ApplyAntirollBarForce (Axle axle, float strength)
+        /// <see href="https://www.youtube.com/watch?v=_liGnV3PTiQ">
+        ///     <cref>How Anti-Roll Bars Work</cref>
+        /// </see>
+        private void ApplyAntirollBarForce (Axle axle, float strength)
         {
             /* When the suspension on one side compresses, the antiroll bar applies compression force to the opposing side suspension.
              * This creates a force that fights against the car body leaning to the sides, increasing roll stability.
              * 
-             * Besides protecting the car agains rolling, the antiroll bars have a big influence on handling.
+             * Besides protecting the car against rolling, the antiroll bars have a big influence on handling.
              * By fighting against roll on cornering, the weight is distributed more evenly between left and right tires, resulting in better cornering grip and stability.
              * There's an optimal balance, though. 
-             * Too strong antiroll bars can compromise suspension independence, resulting in lower grip and worse bump absortion, making the car twitchy on uneven terrain.
+             * Too strong antiroll bars can compromise suspension independence, resulting in lower grip and worse bump absorption, making the car twitchy on uneven terrain.
              * On cornering, it can also cause the outside wheel to lift off the ground in extreme cases.
              * 
-             * Balance between front and rear rollbars are also important. A stiffer front increases understeer, a stiffer rear increases oversteer.
-             * Changing this balance is very helpful to achieve the desired handling caracteristic.
+             * Balance between front and rear roll-bars are also important. A stiffer front increases understeer, a stiffer rear increases oversteer.
+             * Changing this balance is very helpful to achieve the desired handling characteristic.
              */
             
             float leftTravel;
-            float rightTravel;
             SimpleCarWheel leftWheel;
             SimpleCarWheel rightWheel;
 
             if (axle == Axle.Front)
             {
-                leftWheel = FrontLeftWheel;
-                leftTravel = leftWheel.SuspensionTravel;
+                leftWheel = frontLeftWheel;
+                leftTravel = leftWheel.suspensionTravel;
 
-                rightWheel = FrontRightWheel;
-                rightTravel = rightWheel.SuspensionTravel;
+                rightWheel = frontRightWheel;
             }
             else
             {
-                leftWheel = RearLeftWheel;
-                leftTravel = leftWheel.SuspensionTravel;
+                leftWheel = rearLeftWheel;
+                leftTravel = leftWheel.suspensionTravel;
 
-                rightWheel = RearRightWheel;
-                rightTravel = rightWheel.SuspensionTravel;
+                rightWheel = rearRightWheel;
             }
 
-            float antiRollForce = (leftTravel - rightTravel) * strength;
+            var rightTravel = rightWheel.suspensionTravel;
+
+            var antiRollForce = (leftTravel - rightTravel) * strength;
 
             if (leftWheel.isGrounded)
             {
@@ -298,10 +287,10 @@ namespace UnityVehicles.SimpleCar
         /// </summary>
         void UpdateWheelsValues()
         {
-            FrontRightWheel.UpdateValues();
-            FrontLeftWheel.UpdateValues();
-            RearRightWheel.UpdateValues();
-            RearLeftWheel.UpdateValues();
+            frontRightWheel.UpdateValues();
+            frontLeftWheel.UpdateValues();
+            rearRightWheel.UpdateValues();
+            rearLeftWheel.UpdateValues();
         }
 
         /// <summary>
@@ -311,11 +300,11 @@ namespace UnityVehicles.SimpleCar
         {
             /* Most road cars calculate speed by measuring the drivetrain rotation speed and wheel radius to deduce the tire surface speed 
              * (that's why changing tire radius throws off speed readings on a real car)
-             * Conclusion: the speedometer reads the speed of the spinning wheels surface, not the actual physical speed that the car is travelling.
+             * Conclusion: the speedometer reads the speed of the spinning wheels surface, not the actual physical speed that the car is traveling.
              * This is just a touch to make speed readings more immersive, since a burnout in real life would cause the speedometer to spike even though the car is not moving.
              * Dials going crazy are cool for the player :D
              */
-            Speedometer = wheelAverageRpm / 60f * drivenWheels[0].WheelCollider.radius * 2f * Mathf.PI;
+            speedometer = wheelAverageRpm / 60f * drivenWheels[0].wheelCollider.radius * 2f * Mathf.PI;
         }
 
         /// <summary>
@@ -326,12 +315,12 @@ namespace UnityVehicles.SimpleCar
         {
 
             /* Engine and wheels are locked together when the car is clutched. Getting an average of the driven wheels
-             * is a good approximation of engine RPM in a car with an open differential, but innacurate for locked or limited slip differentials.
+             * is a good approximation of engine RPM in a car with an open differential, but inaccurate for locked or limited slip differentials.
              */
             float wheelRpmAvg = 0f;
             foreach (SimpleCarWheel simpleCarWheel in drivenWheels)
             {
-                wheelRpmAvg += simpleCarWheel.WheelCollider.rpm;
+                wheelRpmAvg += simpleCarWheel.wheelCollider.rpm;
             }
 
             wheelRpmAvg = wheelRpmAvg / drivenWheels.Length;
@@ -343,7 +332,7 @@ namespace UnityVehicles.SimpleCar
         /// -1 is neutral gear and -2 is reverse gear. Values are clamped between existing gears.
         /// </summary>
         /// <param name="gear"></param>
-        public void SetGear(int gear)
+        private void SetGear(int gear)
         {
             if (wheelAverageRpm > 2f && gear == -2)
             {
@@ -354,29 +343,29 @@ namespace UnityVehicles.SimpleCar
              */
             if (gear >= 0)
             {
-                float predictedRpm =  GearRatios[Mathf.Clamp(gear, 0, GearRatios.Length - 1)] * DifferentialGearRatio * wheelAverageRpm;
+                float predictedRpm =  gearboxData.gearRatios[Mathf.Clamp(gear, 0, gearboxData.gearRatios.Length - 1)] * gearboxData.differentialGearRatio * wheelAverageRpm;
 
-                if (Mathf.Abs(predictedRpm) > RpmRange)
+                if (Mathf.Abs(predictedRpm) > engineData.rpmRange)
                 {
                     return;
                 }
             }
 
-            CurrentGear = Mathf.Clamp(gear, -2, GearRatios.Length - 1);
+            currentGear = Mathf.Clamp(gear, -2, gearboxData.gearRatios.Length - 1);
             
             if (gear >= 0)
             {
-                CurrentGearRatio = GearRatios[CurrentGear];
+                currentGearRatio = gearboxData.gearRatios[currentGear];
             }
             else if (gear == -1)
             {
                 //Neutral
-                CurrentGearRatio = 0f;
+                currentGearRatio = 0f;
             }
             else
             {
                 //Reverse
-                CurrentGearRatio = -ReverseGearRatio;
+                currentGearRatio = -gearboxData.reverseGearRatio;
             }
         }
 
@@ -385,7 +374,7 @@ namespace UnityVehicles.SimpleCar
         /// </summary>
         public void IncreaseGear()
         {
-            SetGear(CurrentGear + 1);
+            SetGear(currentGear + 1);
         }
 
         /// <summary>
@@ -393,20 +382,26 @@ namespace UnityVehicles.SimpleCar
         /// </summary>
         public void DecreaseGear()
         {
-            SetGear(CurrentGear - 1);
+            SetGear(currentGear - 1);
         }
 
         /// <summary>
-        /// Calculates wheel base (distance between car's two axles) and rear axle track (distance between rear wheels).
+        /// Calculates wheelbase (distance between car's two axles) and rear axle track (distance between rear wheels).
         /// This is necessary for Ackermann steering calculation
         /// </summary>
         /// <returns>WheelBase, RearAxleTrack</returns>
         (float, float) GetWheelBaseAndRearAxleTrack()
         {
-            Vector3 frontAxleMidPoint = (FrontLeftWheel.transform.position + FrontRightWheel.transform.position) / 2f;
-            Vector3 rearAxleMidPoint = (RearLeftWheel.transform.position + RearRightWheel.transform.position) / 2f;
+            frontLeftWheel.wheelCollider.GetWorldPose(out var flWheelPos, out _);
+            frontLeftWheel.wheelCollider.GetWorldPose(out var frWheelPos, out _);
+            rearLeftWheel.wheelCollider.GetWorldPose(out var rlWheelPos, out _);
+            rearRightWheel.wheelCollider.GetWorldPose(out var rrWheelPos, out _);
+            
+            var frontAxleMidPoint = (flWheelPos + frWheelPos) / 2f;
+            var rearAxleMidPoint = (rlWheelPos + rrWheelPos) / 2f;
             wheelBase = Vector3.Distance(frontAxleMidPoint, rearAxleMidPoint);
-            rearAxleTrack = Vector3.Distance(RearLeftWheel.transform.position, RearRightWheel.transform.position);
+            rearAxleTrack = Vector3.Distance(rearLeftWheel.transform.position, rearRightWheel.transform.position);
+            
 
             return (wheelBase, rearAxleTrack);
         }
@@ -417,27 +412,38 @@ namespace UnityVehicles.SimpleCar
         /// </summary>
         /// <param name="steeringInput">Value between -1 (left) and +1 (right)</param>
         /// <returns>Steering angle for both wheels packaged in a Vector2 (x = left, y = right)</returns>
-        Vector2 CalculateAckermannSteering(float steeringInput, float wheelBase, float turnRadius, float rearAxleTrack)
+        private Vector2 CalculateAckermannSteering(float steeringInput, float wheelBase, float turnRadius, float rearAxleTrack)
         {
-            Vector2 steeringAngles = Vector2.zero;
+            var steeringAngles = Vector2.zero;
 
-            if (steeringInput > 0) //Turning right
+            switch (steeringInput)
             {
-                steeringAngles.x = Mathf.Rad2Deg * Mathf.Atan(wheelBase / (turnRadius + (rearAxleTrack / 2))) * steeringInput;
-                steeringAngles.y = Mathf.Rad2Deg * Mathf.Atan(wheelBase / (turnRadius - (rearAxleTrack / 2))) * steeringInput;
-            }
-            else if (steeringInput < 0) //Turning left
-            {
-                steeringAngles.x = Mathf.Rad2Deg * Mathf.Atan(wheelBase / (turnRadius - (rearAxleTrack / 2))) * steeringInput;
-                steeringAngles.y = Mathf.Rad2Deg * Mathf.Atan(wheelBase / (turnRadius + (rearAxleTrack / 2))) * steeringInput;
+                //Turning right
+                case > 0:
+                    steeringAngles.x = Mathf.Rad2Deg * Mathf.Atan(wheelBase / (turnRadius + (rearAxleTrack / 2))) * steeringInput;
+                    steeringAngles.y = Mathf.Rad2Deg * Mathf.Atan(wheelBase / (turnRadius - (rearAxleTrack / 2))) * steeringInput;
+                    break;
+                //Turning left
+                case < 0:
+                    steeringAngles.x = Mathf.Rad2Deg * Mathf.Atan(wheelBase / (turnRadius - (rearAxleTrack / 2))) * steeringInput;
+                    steeringAngles.y = Mathf.Rad2Deg * Mathf.Atan(wheelBase / (turnRadius + (rearAxleTrack / 2))) * steeringInput;
+                    break;
             }
 
             return steeringAngles;
         }
 
+        void SetWheelsPosition()
+        {
+            frontLeftWheel.SetWheelProperties(tires, suspension, chassisData.wheelMount, true, true);
+            frontRightWheel.SetWheelProperties(tires, suspension, chassisData.wheelMount, true, false);
+            rearLeftWheel.SetWheelProperties(tires, suspension, chassisData.wheelMount, false, true);
+            rearRightWheel.SetWheelProperties(tires, suspension, chassisData.wheelMount, false, false);
+        }
+        
         private void OnDrawGizmosSelected()
         {
-            Vector3 gizmoPos = transform.TransformPoint(CenterOfMassOffset);
+            Vector3 gizmoPos = transform.TransformPoint(chassisData.physicalProperties.centerOfMass);
             Gizmos.DrawWireSphere(gizmoPos, 0.1f);    
         }
     }

@@ -121,10 +121,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbfeebe6625d8404d98c8f8bc8500ac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleCarDebugUIController
-  Car: {fileID: 0}
-  RPMBar: {fileID: 8088175164521948905}
-  GearBar: {fileID: 7715170676875102718}
-  SpeedBar: {fileID: 1406794356285055379}
+  car: {fileID: 0}
+  rpmBar: {fileID: 8088175164521948905}
+  gearBar: {fileID: 7715170676875102718}
+  speedBar: {fileID: 1406794356285055379}
 --- !u!1001 &604712554195892104
 PrefabInstance:
   m_ObjectHideFlags: 0

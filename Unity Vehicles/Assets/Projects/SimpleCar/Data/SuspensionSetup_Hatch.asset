@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edd4e33662b3753459f39640ae77efa4, type: 3}
+  m_Name: SuspensionSetup_Hatch
+  m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.CarSetupDataSuspension
+  front:
+    Spring: 11000
+    Damper: 950
+    Distance: 0.2
+    TargetPosition: 0.3
+  back:
+    Spring: 10000
+    Damper: 900
+    Distance: 0.2
+    TargetPosition: 0.3

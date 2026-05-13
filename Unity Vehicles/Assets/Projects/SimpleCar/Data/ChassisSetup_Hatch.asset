@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30b80792df059a94887ae713836399eb, type: 3}
+  m_Name: ChassisSetup_Hatch
+  m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.CarSetupDataChassis
+  chassisData:
+    PhysicalProperties:
+      Mass: 860
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      CenterOfMass: {x: 0, y: -0.53, z: 0.35}
+    WheelMount:
+      FrontWheelsCenter: {x: 1.262, y: -0.603}
+      RearWheelsCenter: {x: -1.431, y: -0.603}
+      FrontAxleWidth: 1.504
+      RearAxleWidth: 1.504
+      FrontForceAppPointDistance: 0.3
+      RearForceAppPointDistance: 0.3
+      TurnRadius: 10
+      SteeringRange: 900
+    DriveTrainType: 0

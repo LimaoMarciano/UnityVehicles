@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 51236046325918835}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.75200003, y: -0.603, z: 1.262}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -41,7 +41,7 @@ WheelCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 51236046325918835}
   serializedVersion: 2
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: -0.752, y: -0.603, z: 1.262}
   m_Radius: 0.28
   m_SuspensionSpring:
     spring: 30000
@@ -84,7 +84,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 535a3796744c2064db39c8d17ae5e3a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.SimpleCarWheel
-  VisualWheel: {fileID: 2863784121886089103}
+  visualWheel: {fileID: 2863784121886089103}
 --- !u!1 &3108031429286424762
 GameObject:
   m_ObjectHideFlags: 0
@@ -112,7 +112,7 @@ Transform:
   m_GameObject: {fileID: 3108031429286424762}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.752, y: -0.603, z: -1.4310001}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -126,7 +126,7 @@ WheelCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3108031429286424762}
   serializedVersion: 2
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0.752, y: -0.603, z: -1.4310001}
   m_Radius: 0.28
   m_SuspensionSpring:
     spring: 28000
@@ -169,7 +169,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 535a3796744c2064db39c8d17ae5e3a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.SimpleCarWheel
-  VisualWheel: {fileID: 4719641252991682451}
+  visualWheel: {fileID: 4719641252991682451}
 --- !u!1 &4988943251990638132
 GameObject:
   m_ObjectHideFlags: 0
@@ -197,7 +197,7 @@ Transform:
   m_GameObject: {fileID: 4988943251990638132}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.752, y: -0.603, z: 1.262}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -211,7 +211,7 @@ WheelCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4988943251990638132}
   serializedVersion: 2
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0.752, y: -0.603, z: 1.262}
   m_Radius: 0.28
   m_SuspensionSpring:
     spring: 30000
@@ -254,7 +254,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 535a3796744c2064db39c8d17ae5e3a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.SimpleCarWheel
-  VisualWheel: {fileID: 2196169044452993049}
+  visualWheel: {fileID: 2196169044452993049}
 --- !u!1 &7745111270711100772
 GameObject:
   m_ObjectHideFlags: 0
@@ -282,7 +282,7 @@ Transform:
   m_GameObject: {fileID: 7745111270711100772}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.75200003, y: -0.603, z: -1.431}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -296,7 +296,7 @@ WheelCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7745111270711100772}
   serializedVersion: 2
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: -0.75200003, y: -0.603, z: -1.431}
   m_Radius: 0.28
   m_SuspensionSpring:
     spring: 28000
@@ -339,7 +339,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 535a3796744c2064db39c8d17ae5e3a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.SimpleCarWheel
-  VisualWheel: {fileID: 5493097380050729898}
+  visualWheel: {fileID: 5493097380050729898}
 --- !u!1001 &1869246051474018290
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -494,7 +494,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 15061031cf2697749b1011911d411297, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.78044
+      value: -0.686
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 15061031cf2697749b1011911d411297, type: 3}
       propertyPath: m_LocalRotation.w
@@ -572,6 +572,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 15061031cf2697749b1011911d411297, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3964953370274670761}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 15061031cf2697749b1011911d411297, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4282016307221617235}
   m_SourcePrefab: {fileID: 100100000, guid: 15061031cf2697749b1011911d411297, type: 3}
 --- !u!1 &2735087903099507658 stripped
 GameObject:
@@ -639,70 +642,125 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efb592dfa4bcb6b4b87fb957cb874b3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleCar
-  CenterOfMassOffset: {x: 0, y: 0, z: 0}
-  DriveTrain: 0
-  TurnRadius: 10
-  SteeringWheelRange: 900
-  HorsePower: 78
-  RpmRange: 9000
-  IdleRpm: 500
-  EngineBrake: 50
-  UnclutchedResponse: 1
-  PowerCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 1.7320137
-      outSlope: 1.7320137
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.052956954
-    - serializedVersion: 3
-      time: 0.68
-      value: 1
-      inSlope: 0.023718761
-      outSlope: 0.023718761
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.15529074
-    - serializedVersion: 3
-      time: 1.0008545
-      value: -0.0024795532
-      inSlope: -5.1829553
-      outSlope: -5.1829553
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.042427894
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  GearRatios:
-  - 4.27
-  - 2.35
-  - 1.48
-  - 1.05
-  - 0.8
-  ReverseGearRatio: 3.31
-  DifferentialGearRatio: 4.87
-  DifferentialLock: 0
-  FrontAntirollBarStrenght: 800
-  RearAntirollBarStrenght: 600
-  BrakePower: 1700
-  BrakeBias: 0.65
-  HandbrakePower: 2000
-  FrontRightWheel: {fileID: 8262578627053952078}
-  FrontLeftWheel: {fileID: 8003492215916223123}
-  RearRightWheel: {fileID: 7858197807035070406}
-  RearLeftWheel: {fileID: 381331515912134150}
-  SteeringInput: 0
-  AcceleratorInput: 0
-  BrakesInput: 0
-  HandbrakeInput: 0
+  chassisData:
+    physicalProperties:
+      mass: 860
+      linearDamping: 0.01
+      angularDamping: 0.05
+      centerOfMass: {x: 0, y: -0.53, z: 0.35}
+    wheelMount:
+      frontWheelsCenter: {x: 1.262, y: -0.603}
+      rearWheelsCenter: {x: -1.431, y: -0.603}
+      frontAxleWidth: 1.504
+      rearAxleWidth: 1.504
+      frontForceAppPointDistance: 0.3
+      rearForceAppPointDistance: 0.3
+      turnRadius: 10
+      steeringRange: 900
+    driveTrainType: 0
+  suspension:
+    front:
+      spring: 11000
+      damper: 950
+      distance: 0.2
+      targetPosition: 0.3
+    rear:
+      spring: 10000
+      damper: 900
+      distance: 0.2
+      targetPosition: 0.3
+  tires:
+    front:
+      mass: 20
+      radius: 0.28
+      dampingRate: 0.25
+      forwardFriction:
+        extremumSlip: 0.2
+        extremumValue: 0.7
+        asymptoteSlip: 1
+        asymptoteValue: 0.65
+        stiffness: 1
+      sideFriction:
+        extremumSlip: 0.2
+        extremumValue: 0.75
+        asymptoteSlip: 1
+        asymptoteValue: 0.7
+        stiffness: 1
+    rear:
+      mass: 20
+      radius: 0.28
+      dampingRate: 0.25
+      forwardFriction:
+        extremumSlip: 0.2
+        extremumValue: 0.7
+        asymptoteSlip: 1
+        asymptoteValue: 0.65
+        stiffness: 1
+      sideFriction:
+        extremumSlip: 0.2
+        extremumValue: 0.75
+        asymptoteSlip: 1
+        asymptoteValue: 0.7
+        stiffness: 1
+  engineData:
+    horsePower: 78
+    rpmRange: 9000
+    idleRpm: 500
+    engineBrake: 30
+    unclutchedResponse: 1
+    powerCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1.7376202
+        outSlope: 1.7376202
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.0644044
+      - serializedVersion: 3
+        time: 0.64204705
+        value: 0.99972993
+        inSlope: 0.027313268
+        outSlope: 0.027313268
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.13986705
+      - serializedVersion: 3
+        time: 1.0008545
+        value: 0.0024795532
+        inSlope: -3.4392242
+        outSlope: -3.4392242
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.08231766
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  gearboxData:
+    gearRatios:
+    - 4.27
+    - 2.35
+    - 1.48
+    - 1.05
+    - 0.8
+    reverseGearRatio: 3.31
+    differentialGearRatio: 4.87
+  antirollBarData:
+    frontStrength: 1000
+    rearStrength: 900
+  brakesData:
+    torque: 1700
+    bias: 0.65
+    handbrakeTorque: 2000
+  frontLeftWheel: {fileID: 8003492215916223123}
+  frontRightWheel: {fileID: 8262578627053952078}
+  rearLeftWheel: {fileID: 381331515912134150}
+  rearRightWheel: {fileID: 7858197807035070406}
 --- !u!114 &3964953370274670761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -715,7 +773,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1096f4574ddaeaf4d903fb5852307c6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.SimpleCarController
-  IsAutoclutchEnabled: 1
+  isAutoclutchEnabled: 1
+--- !u!114 &4282016307221617235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2735087903099507658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf848d167759b1441a3d5d859961754f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.SimpleCarApplySetup
+  applyOnStart: 1
+  chassisSetup: {fileID: 0}
+  engineSetup: {fileID: 0}
+  gearboxSetup: {fileID: 0}
+  brakesSetup: {fileID: 0}
+  suspensionSetup: {fileID: 0}
+  antirollBarSetup: {fileID: 0}
+  tireSetup: {fileID: 0}
 --- !u!4 &3368458705250453872 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 15061031cf2697749b1011911d411297, type: 3}

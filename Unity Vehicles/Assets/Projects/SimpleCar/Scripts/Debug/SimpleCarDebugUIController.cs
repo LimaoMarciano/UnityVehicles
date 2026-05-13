@@ -4,22 +4,22 @@ using UnityVehicles.SimpleCar;
 
 public class SimpleCarDebugUIController : MonoBehaviour
 {
-    public SimpleCar Car;
-    public UIDebugBar RPMBar;
-    public UIDebugBar GearBar;
-    public UIDebugBar SpeedBar;
+    public SimpleCar car;
+    public UIDebugBar rpmBar;
+    public UIDebugBar gearBar;
+    public UIDebugBar speedBar;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        RPMBar.Range = Car.RpmRange;
+        rpmBar.Range = car.engineData.rpmRange;
     }
 
     // Update is called once per frame
     void Update()
     {
-        RPMBar.SetCurrentValue(Car.EngineRpm);
-        GearBar.SetCurrentValue(Car.CurrentGear + 1);
-        SpeedBar.SetCurrentValue(Car.Speedometer * 3.6f);
+        rpmBar.SetCurrentValue(car.engineRpm);
+        gearBar.SetCurrentValue(car.currentGear + 1);
+        speedBar.SetCurrentValue(car.speedometer * 3.6f);
     }
 }

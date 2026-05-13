@@ -8,20 +8,20 @@ namespace UnityVehicles.SimpleCar
     public class SimpleCarController : MonoBehaviour
     {
 
-        public bool IsAutoclutchEnabled = true;
-        
-        CarInputActions carInputActions;
-        SimpleCar car;
+        public bool isAutoclutchEnabled = true;
 
-        InputAction GearUpShift;
-        InputAction GearDownShift;
+        private CarInputActions carInputActions;
+        private SimpleCar car;
 
-        float clutchPressTime = 0.25f;
-        float clutchDepressTime = 0.5f;
-        float autoClutchAccOverride = 1f;
-        float autoClutchInput = 0f;
-        bool isExecutingAutoClutch = false;
-        Coroutine AutoClutchCoroutine;
+        private InputAction gearUpShift;
+        private InputAction gearDownShift;
+
+        private const float ClutchPressTime = 0.25f;
+        private const float ClutchDepressTime = 0.5f;
+        private float autoClutchAccOverride = 1f;
+        private float autoClutchInput;
+        private bool isExecutingAutoClutch;
+        private Coroutine autoClutchCoroutine;
 
         private void Awake()
         {
@@ -39,74 +39,55 @@ namespace UnityVehicles.SimpleCar
         }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        private void Start()
         {
             car = GetComponent<SimpleCar>();
-            GearUpShift = carInputActions.FindAction("UpShift");
-            GearDownShift = carInputActions.FindAction("DownShift");
+            gearUpShift = carInputActions.FindAction("UpShift");
+            gearDownShift = carInputActions.FindAction("DownShift");
         }
 
         // Update is called once per frame
-        void Update()
+        private void Update()
         {
-            Vector2 steering = carInputActions.Car.Steering.ReadValue<Vector2>();
+            var steering = carInputActions.Car.Steering.ReadValue<Vector2>();
             car.SteeringInput = steering.x;
 
             car.AcceleratorInput = carInputActions.Car.Throttle.ReadValue<float>() * autoClutchAccOverride;
             car.BrakesInput = carInputActions.Car.Brakes.ReadValue<float>();
             car.HandbrakeInput = carInputActions.Car.Handbrake.ReadValue<float>();
             
-            if (IsAutoclutchEnabled)
-            {
-                car.ClutchInput = autoClutchInput;
-            }
-            else
-            {
-                car.ClutchInput = carInputActions.Car.Clutch.ReadValue<float>();
-            }
+            car.clutchInput = isAutoclutchEnabled ? autoClutchInput : carInputActions.Car.Clutch.ReadValue<float>();
 
-            if (GearUpShift.WasPressedThisFrame())
+            if (gearUpShift.WasPressedThisFrame())
             {
-                if (IsAutoclutchEnabled)
+                if (isAutoclutchEnabled)
                 {
                     if (isExecutingAutoClutch)
-                    {
-                        StopCoroutine(AutoClutchCoroutine);
-                        Debug.Log("Interrupting gear change");
-                    }
-                    AutoClutchCoroutine = StartCoroutine(AutoClutchChangeGear(1, clutchPressTime, clutchDepressTime));
+                        StopCoroutine(autoClutchCoroutine);
+                    autoClutchCoroutine = StartCoroutine(AutoClutchChangeGear(1, ClutchPressTime, ClutchDepressTime));
                 }
                 else
-                {
                     car.IncreaseGear();
-                }
             }
 
-            if (GearDownShift.WasPressedThisFrame())
+            if (gearDownShift.WasPressedThisFrame())
             {
-                if (IsAutoclutchEnabled)
+                if (isAutoclutchEnabled)
                 {
                     if (isExecutingAutoClutch)
-                    {
-                        StopCoroutine(AutoClutchCoroutine);
-                        Debug.Log("Interrupting gear change");
-                    }
-                    AutoClutchCoroutine = StartCoroutine(AutoClutchChangeGear(-1, clutchPressTime, clutchDepressTime));
+                        StopCoroutine(autoClutchCoroutine);
+                    autoClutchCoroutine = StartCoroutine(AutoClutchChangeGear(-1, ClutchPressTime, ClutchDepressTime));
                 } 
                 else
-                {
                     car.DecreaseGear();
-                }
             }
-
-            
         }
 
-        IEnumerator AutoClutchChangeGear(int gearChange, float clutchPressDuration, float clutchDepressDuration)
+        private IEnumerator AutoClutchChangeGear(int gearChange, float clutchPressDuration, float clutchDepressDuration)
         {            
             isExecutingAutoClutch = true;
             
-            for (float i = autoClutchInput; i <= 1f; i += Time.deltaTime * 1f/ clutchPressDuration) 
+            for (var i = autoClutchInput; i <= 1f; i += Time.deltaTime * 1f/ clutchPressDuration) 
             {
                 autoClutchInput = Mathf.Clamp01(i);
                 autoClutchAccOverride = 1f - autoClutchInput;
@@ -121,7 +102,7 @@ namespace UnityVehicles.SimpleCar
             else
                 car.DecreaseGear();
 
-            for (float i = autoClutchInput; i >= 0f; i -= Time.deltaTime * 1f/ clutchDepressDuration)
+            for (var i = autoClutchInput; i >= 0f; i -= Time.deltaTime * 1f/ clutchDepressDuration)
             {
                 autoClutchInput = Mathf.Clamp01(i);
                 autoClutchAccOverride = 1f - autoClutchInput;

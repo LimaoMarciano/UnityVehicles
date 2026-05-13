@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04ca6f434296e5747aa54be6f6bc84d8, type: 3}
+  m_Name: EngineSetup_Hatch_1000
+  m_EditorClassIdentifier: Assembly-CSharp::UnityVehicles.SimpleCar.CarSetupDataEngine
+  engine:
+    horsePower: 78
+    rpmRange: 9000
+    idleRpm: 500
+    engineBrake: 30
+    unclutchedResponse: 1
+    powerCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.64204705
+        value: 0.99972993
+        inSlope: 0.027313268
+        outSlope: 0.027313268
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.13986705
+      - serializedVersion: 3
+        time: 1.0008545
+        value: 0.0024795532
+        inSlope: -0.31165636
+        outSlope: -0.31165636
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.15512651
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
